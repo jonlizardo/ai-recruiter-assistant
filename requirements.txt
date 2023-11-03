@@ -1,6 +1,5 @@
 langchain
 streamlit
-tiktoken
 openai
 pypdf
 python_dotenv
