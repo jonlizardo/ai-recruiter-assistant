@@ -9,7 +9,7 @@ unstructured
 streamlit-ace
 google-search-results
 streamlit-camera-input-live
-codeinterpreterapi[all]
+codeinterpreterapi
 pyrebase4
 firebase-admin
 st-pages
