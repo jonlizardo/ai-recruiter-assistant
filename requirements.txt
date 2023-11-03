@@ -16,3 +16,4 @@ firebase-admin
 st-pages
 streamlit_extras
 asyncio
+
