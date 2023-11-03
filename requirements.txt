@@ -1,4 +1,4 @@
-langchain
+langchain_experimental
 streamlit
 openai
 pypdf
