@@ -264,7 +264,7 @@ def main():
                 #     return
                 progress_value = 0
                 with st.spinner("Analyzing your submission"):
-                    with CodeInterpreterSession() as session:
+                    with CodeInterpreterSession(llm=ChatOpenAI(temperature=1)) as session:
                         response = session.generate_response(f"compare the python code here:  {st.session_state.correct_answers[st.session_state.question_index]} with the python code here: {content}. Do both return the same results?")
                         with st.sidebar:
                             # st.markdown()
