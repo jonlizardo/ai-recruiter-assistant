@@ -9,10 +9,11 @@ unstructured
 streamlit-ace
 google-search-results
 streamlit-camera-input-live
-codeinterpreterapi
+codeinterpreterapi[all]
 pyrebase4
 firebase-admin
 st-pages
 streamlit_extras
 asyncio
+streamlit-pills
 

@@ -130,7 +130,7 @@ def initialize_state():
         st.session_state.correct_answers = []
 
 def get_coding_questions():
-    doc_ref = db.collection('questions').get()
+    doc_ref = db.collection('questions').order_by("index").get()
     return doc_ref
 
 def score_candidate(firstname, lastname, score:int):
@@ -176,6 +176,8 @@ def main():
     c2, c1,  = st.columns([1, 3])
 
     with st.sidebar:
+
+
         # st.markdown(
         #     """
         #     <style>
@@ -205,15 +207,29 @@ def main():
         # if image is not None:
         #
         #     st.image(image)
-        st.subheader(f'Question: {st.session_state.question_index }')
+        # image = camera_input_live(show_controls=False)
+        # if image is not None:
+        #     st.image(image)
+        # with st.form('next'):
+
+        st.subheader(f'Question: {st.session_state.questions[st.session_state.question_index]["question"]  }')
         # for question in questions:
         #     # with CodeInterpreterSession() as session:
         #     #     response = session.generate_response(
         #     #         f'provide the code in python to solve the following question: {question}')
         #     #     st.session_state.correct_answers.append(response.content)
         if len(st.session_state.questions) <= st.session_state.question_index + 1:
-            st.session_state.question_index = 1
-        quiz_context = st.header(f"{questions[st.session_state.question_index].to_dict()['question']}")
+            # st.session_state.question_index = 1
+            print('reached the end')
+        # try:
+        #     if st.session_state.question_index == 0:
+        #         quiz_context = st.header(f"{questions[st.session_state.question_index].to_dict()['question']}")
+        #     else:
+        #         quiz_context = st.header(f"{questions[st.session_state.question_index + 1].to_dict()['question']}")
+        # except:
+        #     print('reached the end')
+        #     st.session_state.question_index = 0
+        # quiz_context = st.header(f"{questions[st.session_state.question_index -1].to_dict()['question']}")
 
         # num_questions = st.number_input('Enter the number of questions', min_value=1, max_value=100, value=1)
         # quiz_type = st.selectbox('Select the quiz type', ['Multiple-Choice', 'True-False', 'Open-Ended'])
@@ -222,15 +238,25 @@ def main():
         # st.write(questions_answers)
 
 
-        if st.button('Next Question', type='primary'):
 
 
-            with st.sidebar:
-                with st.expander("View Generated Solution"):
-                    st.markdown(st.session_state.correct_answers[st.session_state.question_index])
+            # if st.form_submit_button('Next Question', type='primary'):
+            #     st.session_state.question_index += 1
+            # try:
+            #
+            # # if st.session_state.question_index <= len(questions):
+            #
+            #
+            #     with st.sidebar:
+            #         with st.expander("View Generated Solution", expanded=True):
+            #             st.markdown(st.session_state.correct_answers[st.session_state.question_index -1 ])
+            #             st.session_state.question_index += 1
+            # except:
+            #     print('An error here')
 
-            if st.session_state.question_index < len(questions):
-                st.session_state.question_index += 1
+        with st.expander("View AI Generated Solution", expanded=False):
+            st.code(st.session_state.questions[st.session_state.question_index]["answer"] )
+
 
 
     c2.subheader('IDE settings')
@@ -238,7 +264,7 @@ def main():
 
     with c1:
         st.subheader(f'Welcome {st.session_state.first_name} { st.session_state.last_name} - Enter your solution here ')
-        st.markdown(st.session_state.questions)
+        # st.markdown(st.session_state.questions)
         content = st_ace(
             placeholder=("Write your code here"),
             language= 'python',# c2.selectbox("Language mode", options=LANGUAGES, index=121),
@@ -249,7 +275,7 @@ def main():
             # show_gutter=c2.checkbox("Show gutter", value=True),
             # show_print_margin=c2.checkbox("Show print margin", value=False),
             # wrap=c2.checkbox("Wrap enabled", value=False),
-            auto_update= True, #c2.checkbox("Auto update", value=True),
+            auto_update= False, #c2.checkbox("Auto update", value=True),
             # readonly=c2.checkbox("Read-only", value=False),
             min_lines=25,
             key="ace",
@@ -265,18 +291,26 @@ def main():
                 progress_value = 0
                 with st.spinner("Analyzing your submission"):
                     with CodeInterpreterSession(llm=ChatOpenAI(temperature=1)) as session:
-                        response = session.generate_response(f"compare the python code here:  {st.session_state.correct_answers[st.session_state.question_index]} with the python code here: {content}. Do both return the same results?")
+                        if st.session_state.question_index == 1:
+                            print("I am in the first")
+                            st.session_state.question_index = 0
+                        else:
+                            st.session_state.question_index  +=1
+
+                        response = session.generate_response(f"compare the python code here:  {create_chatbot()} with the python code here: {content}. Do both return the same results? Also rate the quality of the code here: {content} on a scale of 1 to 5")
                         with st.sidebar:
                             # st.markdown()
 
                             if 'yes' in response.content.lower():
-                                st.success(response.content, icon="✅")
+                                st.success("Good Job !", icon="✅")
+                                st.markdown(f":green[{response.content}]")
                                 st.session_state.score += 1
 
 
                             else:
                                 st.error(response.content, icon="🚨")
-
+def create_chatbot():
+    return st.session_state.questions[st.session_state.question_index]["answer"]
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     main()
