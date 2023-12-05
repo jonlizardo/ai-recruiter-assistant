@@ -18,6 +18,15 @@ from langchain_experimental.tools import PythonREPLTool
 from langchain.tools import Tool
 from langchain_experimental.agents.agent_toolkits import create_python_agent
 from codeinterpreterapi import CodeInterpreterSession, settings
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
+from google.cloud import firestore
+import firebase_admin
+from firebase_admin import credentials, auth
+from codeinterpreterapi import CodeInterpreterSession
+import pyrebase
+from datetime import date, datetime
+from PIL import Image
 
 # Function to get response from Gorilla Server
 def get_gorilla_response(prompt, model):
@@ -144,3 +153,90 @@ def return_code(question):
     with CodeInterpreterSession() as session:
         response = session.generate_response(question)
         response.show()
+
+
+def create_prompt_template_returns_chain(num_questions=1, quiz_type='Multiple-Choice', quiz_context='', level="easy"):
+    template = f"""
+    You are an expert quiz maker for technical fields. Let's think step by step and
+    create a quiz of coding questions with {num_questions} {quiz_type} questions about the following concept/content: {quiz_context} with the following level of difficulty: {level}. The questions must require the candidate to write code to solve a specific problem.
+    Return just the results.
+
+    The format of the quiz could be one of the following:
+    - Multiple-choice: 
+    - Questions:
+        <Question1>: <a. Answer 1>, <b. Answer 2>, <c. Answer 3>, <d. Answer 4>
+        <Question2>: <a. Answer 1>, <b. Answer 2>, <c. Answer 3>, <d. Answer 4>
+        ....
+    - Answers:
+        <Answer1>: <a|b|c|d>
+        <Answer2>: <a|b|c|d>
+        ....
+        Example:
+        - Questions:
+        - 1. What is the time complexity of a binary search tree?
+            a. O(n)
+            b. O(log n)
+            c. O(n^2)
+            d. O(1)
+        - Answers: 
+            1. b
+    - True-false:
+        - Questions:
+            <Question1>: <True|False>
+            <Question2>: <True|False>
+            .....
+        - Answers:
+            <Answer1>: <True|False>
+            <Answer2>: <True|False>
+            .....
+        Example:
+        - Questions:
+            - 1. What is a binary search tree?           
+        - Answers:
+            - 1. True
+
+    - Open-ended:
+    - Questions:
+        <Question1>: 
+        <Question2>:
+    - Answers:    
+        <Answer1>:
+        <Answer2>:
+    Example:
+        Questions:
+        - 1. What is a binary search tree?
+        - 2. How are binary search trees implemented?
+
+        - Answers: 
+            1. A binary search tree is a data structure that is used to store data in a sorted manner.
+            2. Binary search trees are implemented using linked lists.
+    """
+
+    prompt = PromptTemplate.from_template(template)
+    # prompt.format(num_questions=num_questions, quiz_type=quiz_type, quiz_context=quiz_context)
+    chain = LLMChain(llm=ChatOpenAI(openai_api_key=os.environ.get('OPENAI_API_KEY')),
+                     prompt=prompt)
+    return chain.run(num_questions=num_questions, quiz_type=quiz_type, quiz_context=quiz_context, level=level)
+
+def split_questions_answers(quiz_response):
+    """Function that splits the questions and answers from the quiz response."""
+
+    splitted = quiz_response.split("Answers:")
+    print(f'Question and Answer list count is {len(splitted)}')
+    questions = splitted[0]
+    print(f'Questions are {questions}')
+
+    if len(splitted) == 1:
+        splitted2 = questions.split("Answer:")
+        answers = splitted2[1]
+    else:
+        answers = quiz_response.split("Answers:")[1]
+    print(f'Answers are {answers}')
+
+    return questions, answers
+
+def create_test_return_code(questions: [], answers: [], code: str, owner:str, expiry, subject_area, num_questions, level):
+    db = firestore.Client.from_service_account_json("neurakey.json")
+    db.collection("coding_tests").document(code).set({"owner": owner, "date_created": datetime.utcnow(), "expiry":expiry, "questions": questions, "answers": answers, "subject": subject_area,
+                                                      "num_questions": num_questions, "difficulty_level": level })
+

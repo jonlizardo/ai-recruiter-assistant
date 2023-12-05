@@ -1,5 +1,6 @@
 import streamlit as st
 from codeinterpreterapi import CodeInterpreterSession
+from st_pages import show_pages, hide_pages, Page
 
 from streamlit_ace import st_ace, KEYBINDINGS, LANGUAGES, THEMES
 import os
@@ -26,6 +27,8 @@ except:
     print('Already initialized')
 
 db = firestore.Client.from_service_account_json("neurakey.json")
+
+
 
 
 def create_prompt_template_returns_chain(num_questions=1, quiz_type='Multiple-Choice', quiz_context=''):
@@ -129,6 +132,22 @@ def initialize_state():
     if 'correct_answers' not in st.session_state:
         st.session_state.correct_answers = []
 
+
+
+
+async def watch(test):
+    while True:
+        test.markdown(
+            f"""
+            <p class="time">
+                {str(datetime.now())}
+            </p>
+            """, unsafe_allow_html=True)
+        r = await asyncio.sleep(1)
+
+test = st.empty()
+
+
 def get_coding_questions():
     doc_ref = db.collection('questions').order_by("index").get()
     return doc_ref
@@ -161,17 +180,13 @@ def score_candidate(firstname, lastname, score:int):
 
 def main():
     # with readme("streamlit-ace", st_ace, __file__):
+
     load_dotenv()
     initialize_state()
-    questions = get_coding_questions()
-    st.set_page_config('neuradev.ai coding platform', layout='wide')
-    # st.markdown("""
-    #     <style>
-    #     [data-testid=column]:nth-of-type(1) [data-testid=stVerticalBlock]{
-    #         gap: 0rem;
-    #     }
-    #     </style>
-    #     """, unsafe_allow_html=True)
+
+
+
+
 
     c2, c1,  = st.columns([1, 3])
 
@@ -212,7 +227,7 @@ def main():
         #     st.image(image)
         # with st.form('next'):
 
-        st.subheader(f'Question: {st.session_state.questions[st.session_state.question_index]["question"]  }')
+        st.subheader(f'Question: {st.session_state.questions[st.session_state.question_index] }')
         # for question in questions:
         #     # with CodeInterpreterSession() as session:
         #     #     response = session.generate_response(
@@ -255,7 +270,10 @@ def main():
             #     print('An error here')
 
         with st.expander("View AI Generated Solution", expanded=False):
-            st.code(st.session_state.questions[st.session_state.question_index]["answer"] )
+            st.markdown(st.session_state.answers[st.session_state.question_index])
+
+
+        st.button("End Test", type='primary')
 
 
 
@@ -313,6 +331,17 @@ def create_chatbot():
     return st.session_state.questions[st.session_state.question_index]["answer"]
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    try:
+        st.set_page_config('neuradev.ai coding platform', layout='wide')
+    except:
+        pass
+    show_pages([
+        Page("start.py", "Start"),
+        Page("main.py", "Main"),
+        Page("recruiter.py", "Recruiter")
+
+    ])
+    hide_pages(['Start', 'Main', 'Recruiter'])
     main()
    # asyncio.run(main())
 

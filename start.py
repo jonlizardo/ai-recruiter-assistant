@@ -42,14 +42,28 @@ show_pages([
 
 
 ])
-hide_pages(['Start', 'Main'])
+hide_pages(['Start', 'Main', 'Recruiter'])
+
+
+def get_coding_tests(test_code):
+    doc_ref = db.collection("coding_tests").document(test_code).get()
+    if doc_ref:
+        questions = doc_ref.to_dict()["questions"]
+        answers = doc_ref.to_dict()["answers"]
+
+        st.session_state.questions = questions
+        st.session_state.answers = answers
+        print('Pulled coding tests')
 
 def get_coding_questions():
     doc_ref = db.collection('questions').get()
     return doc_ref
 
 def start():
-    # st.set_page_config(page_title="Neuradev Coding Challenge", page_icon="🧑🏾‍💻", initial_sidebar_state="collapsed")
+    # try:
+    #     st.set_page_config(page_title="Neuradev Coding Challenge", page_icon="🧑🏾‍💻", initial_sidebar_state="collapsed")
+    # except:
+    #     pass
     if 'first_name' not in st.session_state:
         st.session_state.first_name = ''
     if 'last_name' not in st.session_state:
@@ -62,29 +76,36 @@ def start():
         st.session_state.questions = []
     if 'correct_answers' not in st.session_state:
         st.session_state.correct_answers = []
+    if 'test_code' not in st.session_state:
+        st.session_state.test_code = ""
     st.header("Eugene AI Testing Platform")
-    image = Image.open("startimage.jpg")
+    image = Image.open("starter.jpg")
     st.image(image)
 
     tab1, tab2 = st.tabs(['I am a Candidate', 'I am Hiring'])
     with tab1:
         st.session_state.first_name = st.text_input("Enter your first name")
         st.session_state.last_name = st.text_input("Enter your last name")
-        if st.button('Start Coding Challenge', type='primary'):
+
+        st.session_state.test_code = st.text_input("Enter your test code")
+        if st.button('Start My Test', type='primary') and st.session_state.test_code:
             if 'correct_answers' not in st.session_state:
                 st.session_state.correct_answers = []
+
             questions = get_coding_questions()
-            for question in questions:
-                print(question.to_dict())
-                print(question.id)
-                st.session_state.questions.append(question.to_dict())
-                st.session_state.correct_answers.append(question.to_dict()['answer'])
-                # with CodeInterpreterSession() as session:
-                #     response = session.generate_response(
-                #         f'provide the code in python to solve the following question: {question.to_dict()}')
-                #     st.session_state.correct_answers.append(response.content)
-                #     db.collection("questions").document(question.id).set({'answer': response.content}, merge=True)
-            # st.session_state.question_index = 1
+            get_coding_tests(st.session_state.test_code)
+
+            # for question in questions:
+            #     print(question.to_dict())
+            #     print(question.id)
+            #     st.session_state.questions.append(question.to_dict())
+            #     st.session_state.correct_answers.append(question.to_dict()['answer'])
+            #     # with CodeInterpreterSession() as session:
+            #     #     response = session.generate_response(
+            #     #         f'provide the code in python to solve the following question: {question.to_dict()}')
+            #     #     st.session_state.correct_answers.append(response.content)
+            #     #     db.collection("questions").document(question.id).set({'answer': response.content}, merge=True)
+            # # st.session_state.question_index = 1
             switch_page('Main')
 
     with tab2:
