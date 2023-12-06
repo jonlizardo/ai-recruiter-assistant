@@ -240,3 +240,6 @@ def create_test_return_code(questions: [], answers: [], code: str, owner:str, ex
     db.collection("coding_tests").document(code).set({"owner": owner, "date_created": datetime.utcnow(), "expiry":expiry, "questions": questions, "answers": answers, "subject": subject_area,
                                                       "num_questions": num_questions, "difficulty_level": level })
 
+
+def my_tests():
+    pass

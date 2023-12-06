@@ -167,6 +167,8 @@ def side_bar():
         # st.session_state.pop("user_email")
         switch_page("start")
 
+def my_tests():
+    pass
 
 if __name__ == '__main__':
     with st.sidebar:
