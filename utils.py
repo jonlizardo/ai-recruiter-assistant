@@ -21,6 +21,7 @@ from codeinterpreterapi import CodeInterpreterSession, settings
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from google.cloud import firestore
+from google.cloud.firestore_v1.types.query import StructuredQuery
 import firebase_admin
 from firebase_admin import credentials, auth
 from codeinterpreterapi import CodeInterpreterSession
@@ -241,5 +242,8 @@ def create_test_return_code(questions: [], answers: [], code: str, owner:str, ex
                                                       "num_questions": num_questions, "difficulty_level": level })
 
 
-def my_tests():
-    pass
+def get_my_tests(owner: str):
+    db = firestore.Client.from_service_account_json("neurakey.json")
+    tests_ref = db.collection("coding_tests")
+    query_ref = tests_ref.where("owner", "==", owner)
+    return query_ref.get()

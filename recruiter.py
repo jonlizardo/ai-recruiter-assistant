@@ -17,8 +17,14 @@ show_pages([
 ])
 hide_pages(['Start', 'Main', 'Recruiter'])
 def recruiter():
+    
+    if st.session_state.active_page == "Create New Test":
+        create_coding_tests()
+    
+    if st.session_state.active_page == "My Tests":
+        my_tests()
+    
 
-    create_coding_tests()
 
 def create_coding_tests():
     if 'generated_questions' not in st.session_state:
@@ -168,8 +174,30 @@ def side_bar():
         switch_page("start")
 
 def my_tests():
-    pass
+    st.header("My Tests", divider="red")
+    my_tests = get_my_tests(owner=st.session_state.user_email)
 
+    # create streamlit table with my_tests array data
+    # st.table([
+    #     {
+    #         "questions": '\n'.join(test.get('questions')),
+    #         "date_created": test.get('date_created'),
+    #     }
+    #     for test in my_tests
+    # ])
+
+    tabs = st.tabs([test.id for test in my_tests])
+    for i, tab in enumerate(tabs):
+        test = my_tests[i]
+        with tab:
+            st.text(f"Subject: {test.get('subject') if test.get('subject') else 'N/A' } | Total {test.get('num_questions')} questions | Difficulty level: {test.get('difficulty_level')} | Expires at {test.get('expiry')}")
+            st.text(f"Created by {test.get('owner')} at {test.get('date_created').strftime('%Y-%m-%d %H:%M:%S')}")
+
+            for j, question in enumerate(test.get('questions')):
+                with st.expander(f"Problem {question}"):
+                    st.text(question)
+
+    
 if __name__ == '__main__':
     with st.sidebar:
         side_bar()
