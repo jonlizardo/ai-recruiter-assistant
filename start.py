@@ -53,6 +53,8 @@ def get_coding_tests(test_code):
 
         st.session_state.questions = questions
         st.session_state.answers = answers
+        st.session_state.duration = doc_ref.to_dict()["duration"]
+
         print('Pulled coding tests')
 
 def get_coding_questions():
@@ -89,11 +91,15 @@ def start():
 
         st.session_state.test_code = st.text_input("Enter your test code")
         if st.button('Start My Test', type='primary') and st.session_state.test_code:
+
             if 'correct_answers' not in st.session_state:
                 st.session_state.correct_answers = []
 
+
             questions = get_coding_questions()
             get_coding_tests(st.session_state.test_code)
+            st.session_state.question_index=0
+            st.session_state.show_score = False
 
             # for question in questions:
             #     print(question.to_dict())

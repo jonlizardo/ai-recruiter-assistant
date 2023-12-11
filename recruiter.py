@@ -64,6 +64,8 @@ def create_coding_tests():
 
     level = st.selectbox("Level of Difficulty", ("Beginner", "Intermediate", "Advanced", "Expert"))
 
+    duration = st.number_input("Test Duration (mins)", min_value=10, max_value=500, step=5)
+
     if  st.button("Generate Questions"):
 
         st.session_state.generated_questions = ""
@@ -130,7 +132,7 @@ def create_coding_tests():
             import string
             rand = "".join(random.choices(string.digits, k=5))
             create_test_return_code(questions=st.session_state.final_questions, answers=st.session_state.final_answers,
-                                    code=rand, expiry="2029-01-01", owner=st.session_state.user_email, subject_area=selected, num_questions=total_questions, level=level)
+                                    code=rand, expiry="2029-01-01", owner=st.session_state.user_email, subject_area=selected, num_questions=total_questions, level=level, duration=duration)
             st.success(f"Test created successfully with code {rand}. Please share this code with the candidate.")
             st.session_state.generated_questions = ""
             st.session_state.generated_answers = ""
@@ -190,7 +192,7 @@ def my_tests():
     for i, tab in enumerate(tabs):
         test = my_tests[i]
         with tab:
-            st.text(f"Subject: {test.get('subject') if test.get('subject') else 'N/A' } | Total {test.get('num_questions')} questions | Difficulty level: {test.get('difficulty_level')} | Expires at {test.get('expiry')}")
+            st.text(f"Subject: {test.get('subject') if test.get('subject') else 'N/A' } | Total {test.get('num_questions')} questions | Difficulty level: {test.get('difficulty_level')} |Duration: {test.get('duration')} mins | Expires at {test.get('expiry')}")
             st.text(f"Created by {test.get('owner')} at {test.get('date_created').strftime('%Y-%m-%d %H:%M:%S')}")
 
             for j, question in enumerate(test.get('questions')):

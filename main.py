@@ -131,6 +131,12 @@ def initialize_state():
         st.session_state.question_index = 0
     if 'correct_answers' not in st.session_state:
         st.session_state.correct_answers = []
+    if 'duration' not in st.session_state:
+        st.session_state.duration = 0
+    if 'score' not in st.session_state:
+        st.session_state.score = 0
+    if 'show_score' not in st.session_state:
+        st.session_state.show_score = False
 
 
 
@@ -217,15 +223,20 @@ def main():
         #     await asyncio.sleep(1)
         #     st.experimental_rerun()  # <-- here
 
-        # image = camera_input_live(show_controls=True)
+        # with st.form('image'):
+        #     image = camera_input_live(show_controls=True)
         #
-        # if image is not None:
+        #     if image is not None:
         #
-        #     st.image(image)
-        # image = camera_input_live(show_controls=False)
-        # if image is not None:
-        #     st.image(image)
-        # with st.form('next'):
+        #         st.image(image)
+        #
+        #     st.form_submit_button('End Coding Test')
+        if st.session_state.show_score:
+            st.title(f"You scored : {st.session_state.score}/{len(st.session_state.questions)}")
+        st.header(f"Test Duration:  {st.session_state.duration} mins", divider="red")
+
+
+
 
         st.subheader(f'Question: {st.session_state.questions[st.session_state.question_index] }')
         # for question in questions:
@@ -233,8 +244,8 @@ def main():
         #     #     response = session.generate_response(
         #     #         f'provide the code in python to solve the following question: {question}')
         #     #     st.session_state.correct_answers.append(response.content)
-        if len(st.session_state.questions) <= st.session_state.question_index + 1:
-            # st.session_state.question_index = 1
+        if len(st.session_state.questions) <= st.session_state.question_index :
+            st.session_state.question_index = 0
             print('reached the end')
         # try:
         #     if st.session_state.question_index == 0:
@@ -271,9 +282,18 @@ def main():
 
         with st.expander("View AI Generated Solution", expanded=False):
             st.markdown(st.session_state.answers[st.session_state.question_index])
-
-
-        st.button("End Test", type='primary')
+        if not st.session_state.show_score:
+            if st.button("Next Question", type='primary', use_container_width=True):
+                if len(st.session_state.questions) > st.session_state.question_index:
+                    st.session_state.question_index+=1
+                    st.session_state.show_score = False
+                    st.rerun()
+                else:
+                    st.session_state.question_index = 0
+                    st.rerun()
+        if st.button("End Test", type='primary', use_container_width=True):
+            st.session_state.show_score=True
+            st.rerun()
 
 
 
@@ -293,7 +313,7 @@ def main():
             # show_gutter=c2.checkbox("Show gutter", value=True),
             # show_print_margin=c2.checkbox("Show print margin", value=False),
             # wrap=c2.checkbox("Wrap enabled", value=False),
-            auto_update= False, #c2.checkbox("Auto update", value=True),
+            auto_update= True, #c2.checkbox("Auto update", value=True),
             # readonly=c2.checkbox("Read-only", value=False),
             min_lines=25,
             key="ace",
