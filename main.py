@@ -348,7 +348,7 @@ def main():
                             else:
                                 st.error(response.content, icon="🚨")
 def create_chatbot():
-    return st.session_state.questions[st.session_state.question_index]["answer"]
+    return st.session_state.answers[st.session_state.question_index]
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     try:
