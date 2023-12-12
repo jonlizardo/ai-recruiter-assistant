@@ -61,11 +61,33 @@ def get_coding_questions():
     doc_ref = db.collection('questions').get()
     return doc_ref
 
+def create_participant(test_code) -> str:
+    import random
+    import string
+    rand = "".join(random.choices(string.ascii_letters, k=10))
+
+    test_ref = db.collection("coding_tests").document(test_code)
+    participants = test_ref.get().to_dict()['participants']
+    participants[rand] = {
+        "id": rand,
+        "first_name": st.session_state.first_name,
+        "last_name": st.session_state.last_name,
+        "answers": [],
+        "finished": False,
+    }
+    test_ref.update({
+        "participants": participants
+    })
+
+    return rand
+
 def start():
     try:
         st.set_page_config(page_title="Neuradev Coding Test Platform", page_icon="🧑🏾‍💻", initial_sidebar_state="collapsed")
     except:
         pass
+    if 'user_id' not in st.session_state:
+        st.session_state.user_id = ''
     if 'first_name' not in st.session_state:
         st.session_state.first_name = ''
     if 'last_name' not in st.session_state:
@@ -98,6 +120,12 @@ def start():
 
             questions = get_coding_questions()
             get_coding_tests(st.session_state.test_code)
+
+            participant_id = create_participant(st.session_state.test_code)
+
+            print(participant_id)
+
+            st.session_state.participant_id=participant_id
             st.session_state.question_index=0
             st.session_state.show_score = False
 

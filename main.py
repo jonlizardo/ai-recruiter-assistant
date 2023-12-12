@@ -243,8 +243,6 @@ def main():
         if len(st.session_state.questions) <= st.session_state.question_index :
             st.session_state.question_index = 0
             print('reached the end')
-        with st.expander("View AI Generated Solution", expanded=False):
-            st.markdown(st.session_state.answers[st.session_state.question_index])
         if not st.session_state.show_score:
             if st.button("Next Question", type='primary', use_container_width=True):
                 if len(st.session_state.questions) > st.session_state.question_index:
@@ -254,13 +252,20 @@ def main():
                 else:
                     st.session_state.question_index = 0
                     st.rerun()
-        if st.button("End Test", type='primary', use_container_width=True):
-            st.session_state.show_score=True
-            st.rerun()
         if st.session_state.show_score:
             if st.button("Exit", type='primary', use_container_width=True):
                 switch_page('Start')
-
+        else:
+            if st.button("End Test", type='primary', use_container_width=True):
+                test = db.collection("coding_tests").document(st.session_state.test_code)
+                participants = test.get().to_dict()['participants']
+                participant_id = st.session_state['participant_id']
+                participants[participant_id]['finished'] = True
+                test.update({
+                    "participants": participants
+                })
+                st.session_state.show_score=True
+                st.rerun()
 
 
 
@@ -297,27 +302,43 @@ def main():
                 progress_value = 0
                 with st.spinner("Analyzing your submission"):
                     with CodeInterpreterSession(llm=ChatOpenAI(temperature=1)) as session:
-                        if st.session_state.question_index == 1:
-                            print("I am in the first")
-                            st.session_state.question_index = 0
-                        else:
-                            response = session.generate_response(
-                                f"Does the python code written here: {content} solve this problem {st.session_state.questions[st.session_state.question_index]}. Also rate the quality of the code here: {content} on a scale of 1 to 5. If the code solves the problem, include the word PASSED at the end of your response, else include FAILED at the end of your response.")
+                        # if st.session_state.question_index == 1:
+                        #     print("I am in the first")
+                        #     st.session_state.question_index = 0
+                        # else:
+                        response = session.generate_response(
+                            f"Does the python code written here: {content} solve this problem {st.session_state.questions[st.session_state.question_index]}. Also rate the quality of the code here: {content} on a scale of 1 to 5. If the code solves the problem, include the word PASSED at the end of your response, else include FAILED at the end of your response.")
 
-                            # response = session.generate_response(f"compare the python code here:  {create_chatbot()} with the python code here: {content}. Do both return the same results? Also rate the quality of the code here: {content} on a scale of 1 to 5. If both return the same results, include the word PASSED at the end of your response, else include FAILED at the end of your response.")
-                            with st.sidebar:
-                                # st.markdown()
-
-                                if 'PASSED' in response.content.upper():
-                                    st.success("Good Job !", icon="✅")
-                                    st.markdown(f":green[{response.content}]")
-                                    st.session_state.score += 1
-
-                                    #ADD FUNCTION TO SAVE THE RESULT
-
-
-                                else:
-                                    st.error(response.content, icon="🚨")
+                        # response = session.generate_response(f"compare the python code here:  {create_chatbot()} with the python code here: {content}. Do both return the same results? Also rate the quality of the code here: {content} on a scale of 1 to 5. If both return the same results, include the word PASSED at the end of your response, else include FAILED at the end of your response.")
+                        with st.sidebar:
+                            # st.markdown()
+                            passed = 'PASSED' in response.content.upper()
+                            if passed:
+                                st.success("Good Job !", icon="✅")
+                                st.markdown(f":green[{response.content}]")
+                                st.session_state.score += 1
+                            else:
+                                st.error(response.content, icon="🚨")
+                                
+                            #ADD FUNCTION TO SAVE THE RESULT
+                            test = db.collection("coding_tests").document(st.session_state.test_code)
+                            participants = test.get().to_dict()['participants']
+                            participant_id = st.session_state['participant_id']
+                            answers = participants[participant_id]['answers']
+                            answers.append({
+                                "passed": passed,
+                                "description": response.content
+                            })
+                            participants[participant_id]['answers'] = answers
+                            print(participants)
+                            test.update({
+                                "participants": participants
+                            })
+                            # answers = users.append({
+                            #     "passed": passed,
+                            #     "description": response.content
+                            # })
+                            # print(answers)
 def create_chatbot():
     return st.session_state.answers[st.session_state.question_index]
 # Press the green button in the gutter to run the script.
