@@ -62,10 +62,10 @@ def get_coding_questions():
     return doc_ref
 
 def start():
-    # try:
-    #     st.set_page_config(page_title="Neuradev Coding Challenge", page_icon="🧑🏾‍💻", initial_sidebar_state="collapsed")
-    # except:
-    #     pass
+    try:
+        st.set_page_config(page_title="Neuradev Coding Test Platform", page_icon="🧑🏾‍💻", initial_sidebar_state="collapsed")
+    except:
+        pass
     if 'first_name' not in st.session_state:
         st.session_state.first_name = ''
     if 'last_name' not in st.session_state:
@@ -101,17 +101,6 @@ def start():
             st.session_state.question_index=0
             st.session_state.show_score = False
 
-            # for question in questions:
-            #     print(question.to_dict())
-            #     print(question.id)
-            #     st.session_state.questions.append(question.to_dict())
-            #     st.session_state.correct_answers.append(question.to_dict()['answer'])
-            #     # with CodeInterpreterSession() as session:
-            #     #     response = session.generate_response(
-            #     #         f'provide the code in python to solve the following question: {question.to_dict()}')
-            #     #     st.session_state.correct_answers.append(response.content)
-            #     #     db.collection("questions").document(question.id).set({'answer': response.content}, merge=True)
-            # # st.session_state.question_index = 1
             switch_page('Main')
 
     with tab2:
