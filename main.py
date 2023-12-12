@@ -13,6 +13,9 @@ from langchain.chains import LLMChain
 from dotenv import  load_dotenv, find_dotenv
 from langchain.schema import BaseOutputParser
 import  re
+
+from streamlit_extras.switch_page_button import switch_page
+
 from utils import split_into_list_return_question_answers, ask_serp_agent, get_gorilla_response, return_code
 import firebase_admin
 from firebase_admin import credentials
@@ -198,7 +201,6 @@ def main():
 
     with st.sidebar:
 
-
         # st.markdown(
         #     """
         #     <style>
@@ -236,50 +238,11 @@ def main():
         st.header(f"Test Duration:  {st.session_state.duration} mins", divider="red")
 
 
-
-
         st.subheader(f'Question: {st.session_state.questions[st.session_state.question_index] }')
-        # for question in questions:
-        #     # with CodeInterpreterSession() as session:
-        #     #     response = session.generate_response(
-        #     #         f'provide the code in python to solve the following question: {question}')
-        #     #     st.session_state.correct_answers.append(response.content)
+
         if len(st.session_state.questions) <= st.session_state.question_index :
             st.session_state.question_index = 0
             print('reached the end')
-        # try:
-        #     if st.session_state.question_index == 0:
-        #         quiz_context = st.header(f"{questions[st.session_state.question_index].to_dict()['question']}")
-        #     else:
-        #         quiz_context = st.header(f"{questions[st.session_state.question_index + 1].to_dict()['question']}")
-        # except:
-        #     print('reached the end')
-        #     st.session_state.question_index = 0
-        # quiz_context = st.header(f"{questions[st.session_state.question_index -1].to_dict()['question']}")
-
-        # num_questions = st.number_input('Enter the number of questions', min_value=1, max_value=100, value=1)
-        # quiz_type = st.selectbox('Select the quiz type', ['Multiple-Choice', 'True-False', 'Open-Ended'])
-        #st.markdown('Write a function to concatenate the results of two strings')
-        # questions_answers = split_into_list_return_question_answers(st.session_state.questions,st.session_state.answers)
-        # st.write(questions_answers)
-
-
-
-
-            # if st.form_submit_button('Next Question', type='primary'):
-            #     st.session_state.question_index += 1
-            # try:
-            #
-            # # if st.session_state.question_index <= len(questions):
-            #
-            #
-            #     with st.sidebar:
-            #         with st.expander("View Generated Solution", expanded=True):
-            #             st.markdown(st.session_state.correct_answers[st.session_state.question_index -1 ])
-            #             st.session_state.question_index += 1
-            # except:
-            #     print('An error here')
-
         with st.expander("View AI Generated Solution", expanded=False):
             st.markdown(st.session_state.answers[st.session_state.question_index])
         if not st.session_state.show_score:
@@ -294,6 +257,11 @@ def main():
         if st.button("End Test", type='primary', use_container_width=True):
             st.session_state.show_score=True
             st.rerun()
+        if st.session_state.show_score:
+            if st.button("Exit", type='primary', use_container_width=True):
+                switch_page('Start')
+
+
 
 
 
@@ -310,9 +278,9 @@ def main():
             keybinding=c2.selectbox("Keybinding mode", options=KEYBINDINGS, index=3),
             font_size=c2.slider("Font size", 5, 24, 14),
             tab_size=c2.slider("Tab size", 1, 8, 4),
-            # show_gutter=c2.checkbox("Show gutter", value=True),
-            # show_print_margin=c2.checkbox("Show print margin", value=False),
-            # wrap=c2.checkbox("Wrap enabled", value=False),
+            show_gutter=c2.checkbox("Show gutter", value=True),
+            show_print_margin=c2.checkbox("Show print margin", value=False),
+            wrap=c2.checkbox("Wrap enabled", value=False),
             auto_update= True, #c2.checkbox("Auto update", value=True),
             # readonly=c2.checkbox("Read-only", value=False),
             min_lines=25,
@@ -333,20 +301,23 @@ def main():
                             print("I am in the first")
                             st.session_state.question_index = 0
                         else:
-                            st.session_state.question_index  +=1
+                            response = session.generate_response(
+                                f"Does the python code written here: {content} solve this problem {st.session_state.questions[st.session_state.question_index]}. Also rate the quality of the code here: {content} on a scale of 1 to 5. If the code solves the problem, include the word PASSED at the end of your response, else include FAILED at the end of your response.")
 
-                        response = session.generate_response(f"compare the python code here:  {create_chatbot()} with the python code here: {content}. Do both return the same results? Also rate the quality of the code here: {content} on a scale of 1 to 5")
-                        with st.sidebar:
-                            # st.markdown()
+                            # response = session.generate_response(f"compare the python code here:  {create_chatbot()} with the python code here: {content}. Do both return the same results? Also rate the quality of the code here: {content} on a scale of 1 to 5. If both return the same results, include the word PASSED at the end of your response, else include FAILED at the end of your response.")
+                            with st.sidebar:
+                                # st.markdown()
 
-                            if 'yes' in response.content.lower():
-                                st.success("Good Job !", icon="✅")
-                                st.markdown(f":green[{response.content}]")
-                                st.session_state.score += 1
+                                if 'PASSED' in response.content.upper():
+                                    st.success("Good Job !", icon="✅")
+                                    st.markdown(f":green[{response.content}]")
+                                    st.session_state.score += 1
+
+                                    #ADD FUNCTION TO SAVE THE RESULT
 
 
-                            else:
-                                st.error(response.content, icon="🚨")
+                                else:
+                                    st.error(response.content, icon="🚨")
 def create_chatbot():
     return st.session_state.answers[st.session_state.question_index]
 # Press the green button in the gutter to run the script.
