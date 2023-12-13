@@ -195,11 +195,29 @@ def my_tests():
             st.text(f"Subject: {test.get('subject') if test.get('subject') else 'N/A' } | Total {test.get('num_questions')} questions | Difficulty level: {test.get('difficulty_level')} |Duration: {test.get('duration')} mins | Expires at {test.get('expiry')}")
             st.text(f"Created by {test.get('owner')} at {test.get('date_created').strftime('%Y-%m-%d %H:%M:%S')}")
 
-            for j, question in enumerate(test.get('questions')):
-                with st.expander(f"Problem {question}"):
-                    st.text(question)
+            col1, col2 = st.columns(2)
+            with col1:
+                st.subheader('Problems')
+                for j, question in enumerate(test.get('questions')):
+                    st.write(question)
+            with col2:
+                st.subheader('Participants')
+                participants = list(test.to_dict()['participants'].values())
 
-    
+                for j, participant in enumerate(participants):
+                    score = sum(answer["passed"] for k, answer in enumerate(participant['answers']))
+                    total = test.get('num_questions')
+                    with st.expander(f"{participant['first_name']} {participant['last_name']} ({participant['id']}) | {f'Finished | Score: {score}/{total}' if participant['finished'] else 'In progress'}"):
+                        if len(participant['answers']) > 0:
+                            answer_tabs = st.tabs([f"Problem {k + 1}" for k, answer in enumerate(participant['answers'])])
+                            for k, answer_tab in enumerate(answer_tabs):
+                                answer = participant['answers'][k]
+                                with answer_tab:
+                                    if answer['passed']:
+                                        st.success('Passed')
+                                    else:
+                                        st.error('Failed')
+                                    st.write(answer['description'])
 if __name__ == '__main__':
     with st.sidebar:
         side_bar()
