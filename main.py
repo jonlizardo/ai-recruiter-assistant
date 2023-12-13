@@ -243,7 +243,7 @@ def main():
         if len(st.session_state.questions) <= st.session_state.question_index :
             st.session_state.question_index = 0
             print('reached the end')
-        if not st.session_state.show_score:
+        if not st.session_state.show_score and st.session_state.question_index < len(st.session_state.questions) - 1:
             if st.button("Next Question", type='primary', use_container_width=True):
                 if len(st.session_state.questions) > st.session_state.question_index:
                     st.session_state.question_index+=1
