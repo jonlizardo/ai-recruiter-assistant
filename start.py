@@ -108,11 +108,15 @@ def start():
 
     tab1, tab2 = st.tabs(['I am a Candidate', 'I am Hiring'])
     with tab1:
-        st.session_state.first_name = st.text_input("Enter your first name")
-        st.session_state.last_name = st.text_input("Enter your last name")
+        with st.form("candidate_login_form"):
+            st.session_state.first_name = st.text_input("Enter your first name")
+            st.session_state.last_name = st.text_input("Enter your last name")
 
-        st.session_state.test_code = st.text_input("Enter your test code")
-        if st.button('Start My Test', type='primary') and st.session_state.test_code:
+            st.session_state.test_code = st.text_input("Enter your test code")
+
+            st.form_submit_button("Start My Test", type="primary")
+
+        if st.session_state.first_name and st.session_state.last_name and st.session_state.test_code:
 
             if 'correct_answers' not in st.session_state:
                 st.session_state.correct_answers = []
@@ -133,12 +137,13 @@ def start():
 
     with tab2:
         st.text('Welcome Hiring Manager. Please create your account or Login')
-        email = st.text_input("Enter Your Email")
-        password = st.text_input("Enter Your Password", type="password")
-        # st.divider()
-        col1, col2, col3 = st.columns([2, 2, 3])
-        submitted = col1.button("Login ", type="primary", use_container_width=True)
-        submitted2 = col2.button("Create My Account", type="primary", use_container_width=True)
+        with st.form('recruiter_login_form'):
+            email = st.text_input("Enter Your Email")
+            password = st.text_input("Enter Your Password", type="password")
+            # st.divider()
+            col1, col2, col3 = st.columns([2, 2, 3])
+            submitted = col1.form_submit_button("Login ", type="primary", use_container_width=True)
+            submitted2 = col2.form_submit_button("Create My Account", type="primary", use_container_width=True)
 
         if submitted and email and password:
             try:

@@ -236,9 +236,9 @@ def split_questions_answers(quiz_response):
 
     return questions, answers
 
-def create_test_return_code(questions: [], answers: [], code: str, owner:str, expiry, subject_area, num_questions, level, duration, participants):
+def create_test_return_code(questions: [], code: str, owner:str, expiry, subject_area, num_questions, level, duration, participants):
     db = firestore.Client.from_service_account_json("neurakey.json")
-    db.collection("coding_tests").document(code).set({"owner": owner, "date_created": datetime.utcnow(), "expiry":expiry, "questions": questions, "answers": answers, "subject": subject_area,
+    db.collection("coding_tests").document(code).set({"owner": owner, "date_created": datetime.utcnow(), "expiry":expiry, "questions": questions, "subject": subject_area,
                                                       "num_questions": num_questions, "difficulty_level": level, "duration": duration, "participants": participants })
 
 
