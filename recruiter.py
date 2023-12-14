@@ -31,90 +31,113 @@ def create_coding_tests():
         st.session_state.generated_questions = ""
     if 'split_questions' not in st.session_state:
         st.session_state.split_questions = []
+    if 'generated_answers' not in st.session_state:
+        st.session_state.generated_answers = ""
     if 'final_questions' not in st.session_state:
         st.session_state.final_questions = []
+
+    if 'final_answers' not in st.session_state:
+        st.session_state.final_answers = []
 
     st.header("Create a Candidate Coding Test", divider="red")
 
 
-    with st.form('new_coding_test_form'):
-        if 'pill_index' not in st.session_state:
-            st.session_state.pill_index = 0
-        if 'selected_topics' not in st.session_state:
-            st.session_state.selected_topics = []
-        subject_options = ["", "Node JS", "Python", "Machine Learning & Deep Learning", "Java", "Javascript", "ASP.NET",
-            "C#", "PHP", "MY SQL", "SQL Server", "GOLang", "C++", "Data Structures & Algorithms", "Ruby & Rails", "Rust", "LangChain", "llamaIndex", "Object Oriented Programming", "Unity", "Swift", "Objective-C" ],
+    if 'pill_index' not in st.session_state:
+        st.session_state.pill_index = 0
+    if 'selected_topics' not in st.session_state:
+        st.session_state.selected_topics = []
+    subject_options = ["", "Node JS", "Python", "Machine Learning & Deep Learning", "Java", "Javascript", "ASP.NET",
+         "C#", "PHP", "MY SQL", "SQL Server", "GOLang", "C++", "Data Structures & Algorithms", "Ruby & Rails", "Rust", "LangChain", "llamaIndex", "Object Oriented Programming", "Unity", "Swift", "Objective-C" ],
 
-        selected = pills(
-            "Select a test topic",
-            options=["", "Node JS", "Python", "Machine Learning & Deep Learning", "Java", "Javascript", "ASP.NET",
-            "C#", "PHP", "MY SQL", "SQL Server", "GOLang", "C++", "Data Structures & Algorithms", "Ruby & Rails", "Rust", "LangChain", "llamaIndex", "Object Oriented Programming", "Unity", "Swift", "Objective-C" ],
+    index=st.session_state.pill_index,
+    selected = pills(
+        "Select a test topic",
+        options=["", "Node JS", "Python", "Machine Learning & Deep Learning", "Java", "Javascript", "ASP.NET",
+         "C#", "PHP", "MY SQL", "SQL Server", "GOLang", "C++", "Data Structures & Algorithms", "Ruby & Rails", "Rust", "LangChain", "llamaIndex", "Object Oriented Programming", "Unity", "Swift", "Objective-C" ],
 
-            index=st.session_state.pill_index,
-        )
-        if selected:
-            st.session_state.selected_topics.append(selected)
+        index=st.session_state.pill_index,
+    )
+    if selected:
+        st.session_state.selected_topics.append(selected)
 
-        total_questions = st.number_input("How many questions would you like to generate?", min_value=1, max_value=100)
+    total_questions = st.number_input("How many questions would you like to generate?", min_value=1, max_value=100)
 
-        level = st.selectbox("Level of Difficulty", ("Beginner", "Intermediate", "Advanced", "Expert"))
+    level = st.selectbox("Level of Difficulty", ("Beginner", "Intermediate", "Advanced", "Expert"))
 
-        duration = st.number_input("Test Duration (mins)", min_value=10, max_value=500, step=5)
+    duration = st.number_input("Test Duration (mins)", min_value=10, max_value=500, step=5)
 
-        if  st.form_submit_button("Generate Questions"):
+    if  st.button("Generate Questions"):
 
-            st.session_state.generated_questions = ""
-            st.session_state.final_questions.clear()
-
-            with st.spinner("Generating interview questions.. please wait"):
-                quiz_response = create_prompt_template_returns_chain(num_questions=total_questions, quiz_type="Open Ended",
-                                                                    quiz_context=selected, level=level)
-                questions = split_questions_answers(quiz_response)
-                st.session_state.generated_questions = questions
-
-
-                # with CodeInterpreterSession() as session:
-                #     response = session.generate_response(
-                #         f'Generate {total_questions} interview questions on the following subject: {selected}. Return just the questions and nothing else.')
-                #     st.session_state.generated_questions = (response.content)
-                #     st.session_state.split_questions = response.content.split("\n")
-                #     print("This is the first split question")
-                #     print(st.session_state.split_questions[0])
-
-            with st.expander("Your Generated Questions", expanded=True):
-                st.markdown(st.session_state.generated_questions)
-
-
-
-
-        if len(st.session_state.generated_questions) > 0:
-            st.subheader("Add your own questions to this list (optional)")
-            # with st.form("add_mine") :
-            my_question = st.text_area("Enter question here")
-            if st.form_submit_button("Add this question") and my_question:
-                st.session_state.final_questions.append(my_question)
-                st.success("Added this question")
-                # st.session_state.generated_questions =  st.session_state.generated_questions.split("\n")
-        try:
-            st.session_state.generated_questions = st.session_state.generated_questions.split("\n")
-            for question in st.session_state.generated_questions:
-                if any(substring in question for substring in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]):
-                    print(question)
-                    st.session_state.final_questions.append(question)
-        except:
-            pass
-
-        submitted = st.form_submit_button("Create A Test", type='primary')
-
-    if submitted and len(st.session_state.generated_questions) > 0:
-        import random
-        import string
-        rand = "".join(random.choices(string.digits, k=5))
-        create_test_return_code(questions=st.session_state.final_questions,
-                                code=rand, expiry="2029-01-01", owner=st.session_state.user_email, subject_area=selected, num_questions=total_questions, level=level, duration=duration, participants=dict())
-        st.success(f"Test created successfully with code {rand}. Please share this code with the candidate.")
         st.session_state.generated_questions = ""
+        st.session_state.generated_answers = ""
+        st.session_state.final_answers.clear()
         st.session_state.final_questions.clear()
+
+        with st.spinner("Generating interview questions.. please wait"):
+            quiz_response = create_prompt_template_returns_chain(num_questions=total_questions, quiz_type="Open Ended",
+                                                                 quiz_context=selected, level=level)
+            questions, answers = split_questions_answers(quiz_response)
+            st.session_state.generated_answers = answers
+            st.session_state.generated_questions = questions
+
+
+            # with CodeInterpreterSession() as session:
+            #     response = session.generate_response(
+            #         f'Generate {total_questions} interview questions on the following subject: {selected}. Return just the questions and nothing else.')
+            #     st.session_state.generated_questions = (response.content)
+            #     st.session_state.split_questions = response.content.split("\n")
+            #     print("This is the first split question")
+            #     print(st.session_state.split_questions[0])
+
+        with st.expander("Your Generated Questions", expanded=True):
+            st.markdown(st.session_state.generated_questions)
+
+            st.markdown(f"Answers: \n\n{st.session_state.generated_answers}")
+
+
+
+    if len(st.session_state.generated_questions) > 0:
+        st.subheader("Add your own questions to this list (optional)")
+        # with st.form("add_mine") :
+        col1, col2 = st.columns(2)
+        with col1:
+            my_question = st.text_area("Enter question here")
+        with col2:
+            my_answer = st.text_area("Enter the answer here")
+        if st.button("Add this question") and my_question and my_answer:
+            st.session_state.final_questions.append(my_question)
+            st.session_state.final_answers.append(my_answer)
+            st.success("Added this question")
+            # st.session_state.generated_questions =  st.session_state.generated_questions.split("\n")
+    try:
+        st.session_state.generated_questions = st.session_state.generated_questions.split("\n")
+        st.session_state.generated_answers = st.session_state.generated_answers.split("\n")
+        for question in st.session_state.generated_questions:
+            if any(substring in question for substring in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]):
+                print(question)
+                st.session_state.final_questions.append(question)
+        for answer in st.session_state.generated_answers:
+            if any(substring in answer for substring in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]):
+                print(answer)
+                st.session_state.final_answers.append(answer)
+    except:
+        pass
+
+    st.write(st.session_state.final_questions)
+    st.write(st.session_state.final_answers)
+
+    if len(st.session_state.generated_questions) > 0:
+        if st.button("Create A Test", type='primary'):
+            import random
+            import string
+            rand = "".join(random.choices(string.digits, k=5))
+            create_test_return_code(questions=st.session_state.final_questions, answers=st.session_state.final_answers,
+                                    code=rand, expiry="2029-01-01", owner=st.session_state.user_email, subject_area=selected, num_questions=total_questions, level=level, duration=duration, participants=dict())
+            st.success(f"Test created successfully with code {rand}. Please share this code with the candidate.")
+            st.session_state.generated_questions = ""
+            st.session_state.generated_answers = ""
+            st.session_state.final_answers.clear()
+            st.session_state.final_questions.clear()
 
 def side_bar():
     if "index" not in st.session_state:
