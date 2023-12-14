@@ -48,7 +48,14 @@ def candidate_login_form():
         col1.form_submit_button("Start My Test", type="primary", use_container_width=True)
         
     if first_name and last_name and test_code:
-        st.write(f"Starting Test {test_code} as {first_name} {last_name}")
+        st.session_state.user = {
+            "first_name": first_name,
+            "last_name": last_name,
+        }
+        st.session_state.role = "candidate"
+        st.session_state.test_code = test_code 
+        st.session_state.is_authenticated = True
+        st.rerun()
     
 
 # Recruiter Login Form
@@ -65,7 +72,10 @@ def recruiter_login_form():
             with st.spinner("Please wait..."):
                 success, payload = signin(email, password)
                 if success:
-                    st.success("Successfully signed in.")
+                    st.session_state.user = payload
+                    st.session_state.role = "recruiter"
+                    st.session_state.is_authenticated = True
+                    st.rerun()
                 else:
                     st.error(f"Failed to sign in. {payload}")
                 
