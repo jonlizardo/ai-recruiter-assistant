@@ -21,6 +21,7 @@ from ai.code_test_agent import assess_code
 
 def reset_state():
     del st.session_state.test_started
+    del st.session_state.test_finished
     del st.session_state.participant_id
     del st.session_state.current_problem_index
     del st.session_state.submitted_current_problem
@@ -42,6 +43,8 @@ def candidate():
     # Initialize session state
     if 'test_started' not in st.session_state:
         st.session_state.test_started = False
+    if 'test_finished' not in st.session_state:
+        st.session_state.test_finished = False
     if 'participant_id' not in st.session_state:
         st.session_state.participant_id = None
     if 'current_problem_index' not in st.session_state:
@@ -81,7 +84,28 @@ def candidate():
                         st.session_state.submitted_current_problem = False
                         st.rerun()
                 else:
-                    st.button("Finish Test", type="primary", use_container_width=True, disabled=not st.session_state.submitted_current_problem)
+                    if st.button("Finish Test", type="primary", use_container_width=True, disabled=not st.session_state.submitted_current_problem or st.session_state.test_finished):
+                        participants = test["participants"]
+                        me = st.session_state.participant_id
+                        solutions = participants[me]["solutions"]
+                        overall_rating = sum([solution["overall_rating"] for solution in solutions]) / len(solutions)
+                        overall_code_quality = sum([solution["code_quality"] for solution in solutions]) / len(solutions)
+                        total_passed = len([solution for solution in solutions if solution["passed"]])
+                        finished_at = datetime.now()
+                        
+                        participants[me]["overall_rating"] = overall_rating
+                        participants[me]["overall_code_quality"] = overall_code_quality
+                        participants[me]["total_passed"] = total_passed
+                        participants[me]["finished_at"] = finished_at
+
+                        db.collection("tests").document(st.session_state.test_code).update({
+                            "participants": participants
+                        })
+                        
+                        st.success("🎆 You have successfully completed the test!")
+                        st.session_state.test_finished = True
+                        st.rerun()
+                        
     
     # Add Logout button to sidebar
     with st.sidebar:
@@ -112,7 +136,7 @@ def candidate():
                     new_participant = {
                         "user": st.session_state.user,
                         "started_at": datetime.now(),
-                        "finishd_at": None,
+                        "finished_at": None,
                         "solutions": [],
                         "overall_code_quality": 0,
                         "overall_rating": 0,
@@ -130,8 +154,8 @@ def candidate():
             with cols[1]:
                 if st.button("Sign Out", type="secondary", use_container_width=True):
                     signout()
-    # If test started
-    else:
+    # If test in progress
+    elif not st.session_state.test_finished:
         # st.subheader(f"Problem {st.session_state.current_problem_index + 1}. {test['problems'][st.session_state.current_problem_index]['description']}")
         st.subheader(f"Problem {st.session_state.current_problem_index + 1}")
         st.write(test['problems'][st.session_state.current_problem_index]['description'])
@@ -181,7 +205,16 @@ def candidate():
                         })
                         st.session_state.submitted_current_problem = True
                         st.rerun()
-
+    # If test finished
+    else:
+        my_test = test['participants'][st.session_state.participant_id]
+        solutions = my_test['solutions']
+        st.subheader(f"🎉 Congrats {st.session_state.user['first_name']}!")
+        st.subheader(f"You have successfully completed the test.")
+        with st.container(border=True):
+            st.write(f"🔥 Overall Rating: {round(my_test['overall_rating'], 1)}/5")
+            st.write(f"✨ Solved problems: {len([solution for solution in solutions if solution['passed']])}/{len(test['problems'])}")
+            st.write(f"📚 Code quality: {round(my_test['overall_code_quality'], 1)}/5")
     
 # Run the Streamlit app
 if __name__ == '__main__':
