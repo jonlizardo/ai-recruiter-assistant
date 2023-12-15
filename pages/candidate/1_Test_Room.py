@@ -106,7 +106,7 @@ def candidate():
                         "user": st.session_state.user,
                         "started_at": datetime.now(),
                         "finishd_at": None,
-                        "answers": [],
+                        "solutions": [],
                         "total_quality_score": 0,
                         "total_passed": 0,
                     }
