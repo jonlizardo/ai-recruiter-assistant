@@ -2,6 +2,9 @@ import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
 from st_pages import show_pages, Page, hide_pages
 
+import pandas as pd
+import numpy as np
+
 from google.cloud import firestore
 
 from datetime import datetime
@@ -11,6 +14,11 @@ from utils.auth import signout
 from utils.components import sidebar_logout, hide_navitems_from_sidebar, hide_seperator_from_sidebar, hide_sidebar
 from utils.db import db
 
+
+def reset_state():
+    del st.session_state.test_started
+    del st.session_state.current_problem_index
+    del st.session_state.submitted_current_problem
 
 def candidate():
     # Page Config
@@ -29,7 +37,12 @@ def candidate():
     # Initialize session state
     if 'test_started' not in st.session_state:
         st.session_state.test_started = False
+    if 'current_problem_index' not in st.session_state:
+        st.session_state.current_problem_index = 0
+    if 'submitted_current_problem' not in st.session_state:
+        st.session_state.submitted_current_problem = False
     
+    # Get test info
     test = db.collection("tests").document(st.session_state.test_code).get().to_dict()
 
     # If not started yet
@@ -43,14 +56,29 @@ def candidate():
             hide_navitems_from_sidebar()
             
             # Add Components to sidebar
-            st.header(f"Time Left: 82min 33s")
+            st.header(f"⌚ Time Left: 82min 33s")
+            # st.write(test['problems'][st.session_state.current_problem_index]['description'])
+            df = pd.DataFrame(np.array([
+                [
+                    f"{i+1}. {problem['description']}",
+                    ' ✔' if i < st.session_state.current_problem_index or (i == st.session_state.current_problem_index and st.session_state.submitted_current_problem) else '⚫'
+                ] for i, problem in enumerate(test['problems'])]), columns=("Problem", "Done"))
+            
+            st.dataframe(df, use_container_width=True, hide_index=True, column_config={})
+            
             with st.columns([1, 2])[0]:
-                st.button("Finish Test", type="primary", use_container_width=True)
+                if st.session_state.current_problem_index < len(test["problems"]) - 1:
+                    if st.button('Next Problem', type="primary", use_container_width=True, disabled=not st.session_state.submitted_current_problem):
+                        st.session_state.current_problem_index += 1
+                        st.session_state.submitted_current_problem = False
+                        st.rerun()
+                else:
+                    st.button("Finish Test", type="primary", use_container_width=True, disabled=not st.session_state.submitted_current_problem)
     
     # Add Logout button to sidebar
     with st.sidebar:
         if st.columns([1, 2])[0].button("Sign out", use_container_width=True):
-            del st.session_state.test_started
+            reset_state()
             signout()
     
     # Main Section
@@ -60,7 +88,7 @@ def candidate():
             st.header(f"😔 Oops! {st.session_state.user['first_name']}, there is no test with code {st.session_state.test_code}.")
             st.error(f"There is no test with code {st.session_state.test_code}")
             if st.columns([1, 2])[0].button("Sign out", key="Sign out button in main section", use_container_width=True):
-                del st.session_state.test_started
+                reset_state()
                 signout()
         else:
             st.header(f"👋 Hi {st.session_state.user['first_name']}, welcome to the Test {st.session_state.test_code}!")
@@ -84,15 +112,16 @@ def candidate():
                         "participants": firestore.ArrayUnion([new_participant])
                     })
                     st.session_state.test_started = True
+                    st.session_state.current_problem_index = 0
                     st.rerun()
             with cols[1]:
                 if st.button("Sign Out", type="secondary", use_container_width=True):
                     signout()
     # If test started
     else:
-        st.header(f"Time Left: 82min 33s")
-        with st.columns([1, 2])[0]:
-            st.button("Finish Test", key="Start Test Button on Main Section", type="primary", use_container_width=True)
+        if st.button("Submit", type="primary", disabled=st.session_state.submitted_current_problem):
+            st.session_state.submitted_current_problem = True
+            st.rerun()
     
     
 # Run the Streamlit app
