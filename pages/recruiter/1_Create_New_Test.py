@@ -11,6 +11,7 @@ from utils.components import sidebar_logout
 from utils.constants import categories
 
 import random
+import string
 
 
 def create_new_test():
@@ -48,6 +49,9 @@ def create_new_test():
             ],
         )
         
+        with st.columns([1, 3])[0]:
+            time_limit = st.number_input("Time limit (in minutes)", min_value=10, step=5)
+        
         with st.container(border=True):
             col1, col2 = st.columns([1, 1])
             with col1:
@@ -56,22 +60,34 @@ def create_new_test():
                     if len(st.session_state.problems) == 0:
                         st.write("No problem selected")
                     else:
-                        counts_by_category = [0] * len(categories)
-                        for i, category in enumerate(categories):
-                            counts_by_category[i] = len([1 for problem in st.session_state.problems if problem['category'] == category])
-                        # with st.container(border=False):
-                        #     st.write(' | '.join([f"{category}: {counts_by_category[i]}" for i, category in enumerate(categories)]))
-
                         for i, problem in enumerate(st.session_state.problems):
                             st.write(f"{i + 1}. {problem['description']}")
                         
                         cols = st.columns([1, 1, 1])
                         with cols[1]:    
-                            st.form_submit_button("Save Test", type="primary")
+                            save_test = st.form_submit_button("Save Test", type="primary")
                         with cols[2]:    
-                            if st.form_submit_button("Reset", type="secondary"):
-                                st.session_state.problems = []
-                                st.rerun()
+                            reset_problems = st.form_submit_button("Reset", type="secondary")
+
+                        if save_test:
+                            with st.spinner("Saving..."):
+                                try:
+                                    new_test_code = "".join(random.choices(string.digits, k=5))
+                                    db.collection("tests").document(new_test_code).set({
+                                        "creator": "test_userid",
+                                        "created_at": firestore.SERVER_TIMESTAMP,
+                                        "topic": selected_topic,
+                                        "participants": [],
+                                        "time_limit": time_limit,
+                                        "problems": st.session_state.problems
+                                    })
+                                    st.success(f"Successfully saved! Test code: {new_test_code}")
+                                except Exception as e:
+                                    st.error(f"Failed to save: {e}")
+
+                        if reset_problems:
+                            st.session_state.problems = []
+                            st.rerun()
 
             with col2:
                 with st.container(border=False):
