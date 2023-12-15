@@ -1,5 +1,6 @@
 import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
+from streamlit_ace import st_ace, KEYBINDINGS, LANGUAGES, THEMES
 from st_pages import show_pages, Page, hide_pages
 
 import pandas as pd
@@ -61,7 +62,8 @@ def candidate():
             df = pd.DataFrame(np.array([
                 [
                     f"{i+1}. {problem['description']}",
-                    ' ✔' if i < st.session_state.current_problem_index or (i == st.session_state.current_problem_index and st.session_state.submitted_current_problem) else '⚫'
+                    '🔴' if i < st.session_state.current_problem_index or (i == st.session_state.current_problem_index and st.session_state.submitted_current_problem)
+                    else '⭕' if (i == st.session_state.current_problem_index and not st.session_state.submitted_current_problem) else '⚫'
                 ] for i, problem in enumerate(test['problems'])]), columns=("Problem", "Done"))
             
             st.dataframe(df, use_container_width=True, hide_index=True, column_config={})
@@ -119,10 +121,36 @@ def candidate():
                     signout()
     # If test started
     else:
-        if st.button("Submit", type="primary", disabled=st.session_state.submitted_current_problem):
-            st.session_state.submitted_current_problem = True
-            st.rerun()
-    
+        st.subheader(f"Enter your solution here")
+
+        col1, col2 = st.columns([3, 2])
+        language='python'
+        language = col2.selectbox("Language mode", options=LANGUAGES, index=121)
+        theme = col2.selectbox("Theme", options=THEMES, index=35)
+        keybinding = col2.selectbox("Keybinding mode", options=KEYBINDINGS, index=3)
+        font_size = col2.slider("Font size", 5, 24, 14)
+        tab_size = col2.slider("Tab size", 1, 8, 4)
+        wrap = col2.checkbox("Wrap enabled", value=False)
+            
+        with col1:
+            with st.form("solution_form", border=False):
+                content = st_ace(
+                    placeholder=("Write your code here"),
+                    language=language,
+                    theme=theme,
+                    keybinding=keybinding,
+                    font_size=font_size,
+                    tab_size=tab_size,
+                    wrap=wrap,
+                    auto_update= True, #col2.checkbox("Auto update", value=True),
+                    # readonly=col2.checkbox("Read-only", value=False),
+                    min_lines=30,
+                    key="ace",
+                )
+                if st.columns([3, 2])[1].form_submit_button("🔥 Submit Solution", type="primary", disabled=st.session_state.submitted_current_problem, use_container_width=True):
+                    st.session_state.submitted_current_problem = True
+                    st.rerun()
+
     
 # Run the Streamlit app
 if __name__ == '__main__':
