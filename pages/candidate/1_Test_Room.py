@@ -114,7 +114,8 @@ def candidate():
                         "started_at": datetime.now(),
                         "finishd_at": None,
                         "solutions": [],
-                        "total_quality_score": 0,
+                        "overall_code_quality": 0,
+                        "overall_rating": 0,
                         "total_passed": 0,
                     }
                     participants = test["participants"]
@@ -164,12 +165,14 @@ def candidate():
                     if not solution_code:
                         st.error("Code should not be empty")
                     else:
-                        passed, code_quality, reason = assess_code(problem=test["problems"][st.session_state.current_problem_index]["description"], code=solution_code)
+                        passed, code_quality, overall_rating, reason = assess_code(problem=test["problems"][st.session_state.current_problem_index]["description"], code=solution_code)
+
                         participants = test["participants"]
                         participants[st.session_state.participant_id]["solutions"].append({
                             "code": solution_code,
                             "passed": passed,
                             "code_quality": code_quality,
+                            "overall_rating": overall_rating,
                             "reason": reason,
                         })
                         
