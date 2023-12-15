@@ -6,6 +6,7 @@ from st_pages import show_pages, Page, hide_pages
 from datetime import datetime
 
 from utils.db import db
+from utils.auth import signout
 from utils.init import initialize_app
 from utils.components import sidebar_logout, hide_seperator_from_sidebar
 from utils.constants import categories
@@ -13,6 +14,9 @@ from utils.constants import categories
 import random
 import string
 
+
+def reset_state():
+    del st.session_state.problems
 
 def create_new_test():
     # Page Config
@@ -33,7 +37,10 @@ def create_new_test():
     hide_seperator_from_sidebar()
     
     # Add Logout button to sidebar
-    sidebar_logout()
+    with st.sidebar:
+        if st.columns([1, 2])[0].button("Sign out", use_container_width=True):
+            reset_state()
+            signout()
     
     # Header
     st.header("Create New Test")
