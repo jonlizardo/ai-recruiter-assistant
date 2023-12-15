@@ -81,7 +81,7 @@ def create_new_test():
                                         "creator": st.session_state.user["email"],
                                         "created_at": datetime.now(),
                                         "topic": selected_topic,
-                                        "participants": [],
+                                        "participants": {},
                                         "time_limit": time_limit,
                                         "problems": st.session_state.problems
                                     })

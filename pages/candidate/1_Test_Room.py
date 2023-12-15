@@ -9,15 +9,19 @@ import numpy as np
 from google.cloud import firestore
 
 from datetime import datetime
+import random
+import string
 
 from utils.init import initialize_app
 from utils.auth import signout
 from utils.components import sidebar_logout, hide_navitems_from_sidebar, hide_seperator_from_sidebar, hide_sidebar
 from utils.db import db
 
+from ai.code_test_agent import assess_code
 
 def reset_state():
     del st.session_state.test_started
+    del st.session_state.participant_id
     del st.session_state.current_problem_index
     del st.session_state.submitted_current_problem
 
@@ -38,6 +42,8 @@ def candidate():
     # Initialize session state
     if 'test_started' not in st.session_state:
         st.session_state.test_started = False
+    if 'participant_id' not in st.session_state:
+        st.session_state.participant_id = None
     if 'current_problem_index' not in st.session_state:
         st.session_state.current_problem_index = 0
     if 'submitted_current_problem' not in st.session_state:
@@ -62,7 +68,7 @@ def candidate():
             df = pd.DataFrame(np.array([
                 [
                     f"{i+1}. {problem['description']}",
-                    '🔴' if i < st.session_state.current_problem_index or (i == st.session_state.current_problem_index and st.session_state.submitted_current_problem)
+                    '  ✔' if i < st.session_state.current_problem_index or (i == st.session_state.current_problem_index and st.session_state.submitted_current_problem)
                     else '⭕' if (i == st.session_state.current_problem_index and not st.session_state.submitted_current_problem) else '⚫'
                 ] for i, problem in enumerate(test['problems'])]), columns=("Problem", "Done"))
             
@@ -102,6 +108,7 @@ def candidate():
             cols = st.columns([1, 1, 2])
             with cols[0]:
                 if st.button("Start Test", type="primary", use_container_width=True):
+                    participant_id = "".join(random.choices(string.ascii_letters, k=10))
                     new_participant = {
                         "user": st.session_state.user,
                         "started_at": datetime.now(),
@@ -110,9 +117,12 @@ def candidate():
                         "total_quality_score": 0,
                         "total_passed": 0,
                     }
+                    participants = test["participants"]
+                    participants[participant_id] = new_participant
                     db.collection("tests").document(st.session_state.test_code).update({
-                        "participants": firestore.ArrayUnion([new_participant])
+                        "participants": participants
                     })
+                    st.session_state.participant_id = participant_id
                     st.session_state.test_started = True
                     st.session_state.current_problem_index = 0
                     st.rerun()
@@ -121,7 +131,10 @@ def candidate():
                     signout()
     # If test started
     else:
-        st.subheader(f"Enter your solution here")
+        # st.subheader(f"Problem {st.session_state.current_problem_index + 1}. {test['problems'][st.session_state.current_problem_index]['description']}")
+        st.subheader(f"Problem {st.session_state.current_problem_index + 1}")
+        st.write(test['problems'][st.session_state.current_problem_index]['description'])
+        # st.subheader(f"Enter your solution here")
 
         col1, col2 = st.columns([3, 2])
         language='python'
@@ -134,7 +147,7 @@ def candidate():
             
         with col1:
             with st.form("solution_form", border=False):
-                content = st_ace(
+                solution_code = st_ace(
                     placeholder=("Write your code here"),
                     language=language,
                     theme=theme,
@@ -147,9 +160,24 @@ def candidate():
                     min_lines=30,
                     key="ace",
                 )
-                if st.columns([3, 2])[1].form_submit_button("🔥 Submit Solution", type="primary", disabled=st.session_state.submitted_current_problem, use_container_width=True):
-                    st.session_state.submitted_current_problem = True
-                    st.rerun()
+                if st.columns([3, 2])[1].form_submit_button("🔥 Submit Solution" if not st.session_state.submitted_current_problem else "✔ Submitted", type="primary", disabled=st.session_state.submitted_current_problem, use_container_width=True):
+                    if not solution_code:
+                        st.error("Code should not be empty")
+                    else:
+                        passed, code_quality, reason = assess_code(problem=test["problems"][st.session_state.current_problem_index]["description"], code=solution_code)
+                        participants = test["participants"]
+                        participants[st.session_state.participant_id]["solutions"].append({
+                            "code": solution_code,
+                            "passed": passed,
+                            "code_quality": code_quality,
+                            "reason": reason,
+                        })
+                        
+                        db.collection("tests").document(st.session_state.test_code).update({
+                            "participants": participants
+                        })
+                        st.session_state.submitted_current_problem = True
+                        st.rerun()
 
     
 # Run the Streamlit app
