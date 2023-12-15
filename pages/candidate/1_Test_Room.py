@@ -157,7 +157,7 @@ def candidate():
                     tab_size=tab_size,
                     wrap=wrap,
                     auto_update= True, #col2.checkbox("Auto update", value=True),
-                    # readonly=col2.checkbox("Read-only", value=False),
+                    readonly=st.session_state.submitted_current_problem,
                     min_lines=30,
                     key="ace",
                 )
