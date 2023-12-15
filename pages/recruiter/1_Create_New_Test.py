@@ -29,6 +29,18 @@ def create_new_test():
     ])
     hide_pages(["candidate"])
     
+    # Hide seperator on Sidebar
+    st.markdown(
+        """
+        <style>
+        [data-testid=stSidebarNavSeparator] {
+            display: none !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    
     # Add Logout button to sidebar
     sidebar_logout()
     
