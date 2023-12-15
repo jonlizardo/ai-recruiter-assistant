@@ -74,7 +74,7 @@ def create_new_test():
                                 try:
                                     new_test_code = "".join(random.choices(string.digits, k=5))
                                     db.collection("tests").document(new_test_code).set({
-                                        "creator": "test_userid",
+                                        "creator": st.session_state.user["email"],
                                         "created_at": firestore.SERVER_TIMESTAMP,
                                         "topic": selected_topic,
                                         "participants": [],
@@ -113,6 +113,7 @@ def create_new_test():
                                 st.rerun()
                                 
                     with tabs[1]:
+                        st.text_input("Topic", value=selected_topic, disabled=True)
                         new_problem_description = st.text_area("Description")
                         new_problem_category = st.selectbox("Category", ("Basic", "Algorithm", "Practice"))
                         if st.form_submit_button("Save and Add"):
@@ -130,7 +131,7 @@ def create_new_test():
                                             "description": new_problem_description,
                                             "category": new_problem_category,
                                             "created_at": firestore.SERVER_TIMESTAMP,
-                                            "creator": "test_user_id"
+                                            "creator": st.session_state.user["email"],
                                         })[1]
                                         st.session_state.problems.append(new_problem.get().to_dict())
                                         st.success("Successfully saved")
@@ -142,10 +143,8 @@ def create_new_test():
 # Run the Streamlit app
 if __name__ == '__main__':
     initialize_app()
-    
-    create_new_test()
 
-    # if st.session_state.is_authenticated and st.session_state.role == "recruiter":
-    #     create_new_test()
-    # else:
-    #     switch_page('home')
+    if st.session_state.is_authenticated and st.session_state.role == "recruiter":
+        create_new_test()
+    else:
+        switch_page('home')
