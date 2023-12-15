@@ -35,6 +35,7 @@ def create_new_test():
     # Header
     st.header("Create New Test")
     
+    # Initialize session state
     if 'problems' not in st.session_state:
         st.session_state.problems = []
     
