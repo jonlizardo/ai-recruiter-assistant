@@ -5,9 +5,12 @@ from st_pages import show_pages, Page, hide_pages
 
 from google.cloud import firestore
 
+from utils.db import db
 from utils.init import initialize_app
 from utils.components import sidebar_logout
-from utils.db import db
+from utils.constants import categories
+
+import random
 
 
 def create_new_test():
@@ -43,51 +46,81 @@ def create_new_test():
                 "PHP", "MY SQL", "SQL Server", "GOLang", "C++", "Data Structures & Algorithms","Ruby & Rails",
                 "Rust", "LangChain", "llamaIndex", "Object Oriented Programming", "Unity", "Swift", "Objective-C"
             ],
-            index=-1
         )
         
-        col1, col2 = st.columns([1, 1])
+        with st.container(border=True):
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                with st.container(border=False):
+                    st.subheader("Problems")
+                    if len(st.session_state.problems) == 0:
+                        st.write("No problem selected")
+                    else:
+                        counts_by_category = [0] * len(categories)
+                        for i, category in enumerate(categories):
+                            counts_by_category[i] = len([1 for problem in st.session_state.problems if problem['category'] == category])
+                        # with st.container(border=False):
+                        #     st.write(' | '.join([f"{category}: {counts_by_category[i]}" for i, category in enumerate(categories)]))
 
-        with col1:
-            with st.container(border=True):
-                st.subheader("Problems")
-                for i, problem in enumerate(st.session_state.problems):
-                    st.write(f"{i + 1}. {problem['description']}")
-
-        with col2:
-            with st.container(border=True):
-                st.subheader("Select Problems")
-                tabs = st.tabs(["Add New Problem", "Select From Existing Problems"])
-                with tabs[0]:
-                    new_problem_description = st.text_area("Description")
-                    new_problem_category = st.selectbox("Category", ("Basic", "Algorithm", "Practice"))
-                    if st.form_submit_button("Save and Add", type="primary"):
-                        if not selected_topic:
-                            st.error("Select a test topic")
-                        elif not new_problem_description:
-                            st.error("Description should not be empty.")
-                        elif not new_problem_category:
-                            st.error("Select a category")
-                        else:
-                            with st.spinner("Saving..."):
-                                try:
-                                    new_problem = db.collection("problems").add({
-                                        "topic": selected_topic,
-                                        "description": new_problem_description,
-                                        "category": new_problem_category,
-                                        "created_at": firestore.SERVER_TIMESTAMP,
-                                        "creator": "test_user_id"
-                                    })[1]
-                                    st.session_state.problems.append(new_problem.get().to_dict())
-                                    st.success("Successfully saved")
-                                    st.rerun()
-                                except Exception as e:
-                                    st.error(f"Failed to save: {e}")
+                        for i, problem in enumerate(st.session_state.problems):
+                            st.write(f"{i + 1}. {problem['description']}")
                         
-                with tabs[1]:
-                    st.write('hi')
-            
-        st.form_submit_button("Save Test", type="primary")
+                        cols = st.columns([1, 1, 1])
+                        with cols[1]:    
+                            st.form_submit_button("Save Test", type="primary")
+                        with cols[2]:    
+                            if st.form_submit_button("Reset", type="secondary"):
+                                st.session_state.problems = []
+                                st.rerun()
+
+            with col2:
+                with st.container(border=False):
+                    st.subheader("Select Problems")
+                    tabs = st.tabs(["Select From Existing Problems", "Add New Problem"])
+                    with tabs[0]:
+                        problem_counts = [0] * len(categories)
+                        for i, category in enumerate(categories):
+                            col1, col2 = st.columns([1, 1])
+                            col1.text(category)
+                            problem_counts[i] = col2.number_input("Count", step=1, label_visibility="collapsed", min_value=0, key=f"Problem Counts for {category}")
+                        if st.form_submit_button("Random Select"):
+                            if sum(problem_counts) == 0:
+                                st.error("You should be select one or more problems")
+                            else:
+                                all_problems = [document.to_dict() for document in db.collection("problems").where('topic', '==', selected_topic).get()]
+                                for i, category in enumerate(categories):
+                                    problem_count = problem_counts[i]
+                                    category_problems = list(filter(lambda problem: problem['category'] == category, all_problems))
+                                    random_indices = random.sample(range(len(category_problems)), min(len(category_problems), problem_count))
+                                    for index in random_indices:
+                                        st.session_state.problems.append(category_problems[index])
+                                st.rerun()
+                                
+                    with tabs[1]:
+                        new_problem_description = st.text_area("Description")
+                        new_problem_category = st.selectbox("Category", ("Basic", "Algorithm", "Practice"))
+                        if st.form_submit_button("Save and Add"):
+                            if not selected_topic:
+                                st.error("Select a test topic")
+                            elif not new_problem_description:
+                                st.error("Description should not be empty.")
+                            elif not new_problem_category:
+                                st.error("Select a category")
+                            else:
+                                with st.spinner("Saving..."):
+                                    try:
+                                        new_problem = db.collection("problems").add({
+                                            "topic": selected_topic,
+                                            "description": new_problem_description,
+                                            "category": new_problem_category,
+                                            "created_at": firestore.SERVER_TIMESTAMP,
+                                            "creator": "test_user_id"
+                                        })[1]
+                                        st.session_state.problems.append(new_problem.get().to_dict())
+                                        st.success("Successfully saved")
+                                        st.rerun()
+                                    except Exception as e:
+                                        st.error(f"Failed to save: {e}")
 
 
 # Run the Streamlit app
