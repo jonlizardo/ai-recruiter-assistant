@@ -1,7 +1,14 @@
 import streamlit as st
+from streamlit_extras.switch_page_button import switch_page
+
+from pages.candidate import candidate
+
+from utils.init import initialize_app
+import streamlit as st
 from PIL import Image
 
 from utils.auth import signup, signin
+
 
 # Home Page
 def home():
@@ -86,3 +93,17 @@ def recruiter_login_form():
                     st.success("Created a new user successfully. Please log in.")
                 else:
                     st.error(f"Failed to sign up. {payload}")
+
+
+# Run the Streamlit app
+if __name__ == '__main__':
+    initialize_app()
+    if st.session_state.is_authenticated:
+        if st.session_state.role == "recruiter":
+            switch_page('recruiter_my_tests')
+        elif st.session_state.role == "candidate":
+            candidate()
+        else:
+            home()
+    else:
+        home()
