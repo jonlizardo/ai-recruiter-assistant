@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
 from streamlit_ace import st_ace, KEYBINDINGS, LANGUAGES, THEMES
+from streamlit.components.v1 import html
 from st_pages import show_pages, Page, hide_pages
 
 import pandas as pd
@@ -8,9 +9,10 @@ import numpy as np
 
 from google.cloud import firestore
 
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import random
 import string
+import math
 
 from utils.init import initialize_app
 from utils.auth import signout
@@ -66,7 +68,41 @@ def candidate():
             hide_navitems_from_sidebar()
             
             # Add Components to sidebar
-            st.header(f"⌚ Time Left: 82min 33s")
+            # st.header(test["participants"][st.session_state.participant_id]["started_at"])
+            time_elapsed = datetime.now(timezone.utc) - datetime.strptime(f"{test['participants'][st.session_state.participant_id]['started_at']}", "%Y-%m-%d %H:%M:%S.%f%z")
+            time_left = timedelta(minutes=test["time_limit"]).total_seconds() - time_elapsed.total_seconds()
+            mins = time_left // 60
+            secs = time_left % 60
+
+            html(f"""<div id='timer' style='font-size: 28px; font-weight: 700; margin-bottom: 12px; color: white'> ⌚ Time Left: <span id='timer-content'>---</div>
+<script>
+let timeLeft = Math.floor({time_left});
+const interval = window.setInterval(() => {{
+    timeLeft--;
+    if (timeLeft === 0) {{
+        clearInterval(interval);
+        const overlayElement = document.createElement('div');
+        overlayElement.style.position = "absolute";
+        overlayElement.style.left = '0';
+        overlayElement.style.top = '0';
+        overlayElement.style.width = '100%';
+        overlayElement.style.height = '100%';
+        overlayElement.style.background = '#00000077';
+        overlayElement.style['z-index'] = '99999';
+        window.parent.document.querySelector('[data-testid=stSidebar]').nextSibling.appendChild(overlayElement)
+        document.getElementById("timer").innerHTML = " ⌚ Timer is over!"
+    }}
+    const mins = Math.floor(timeLeft / 60);
+    const secs = timeLeft % 60;
+    const formatted = (mins ? (mins + "min ") : "") + secs + "s";
+    document.getElementById("timer-content").innerHTML = formatted;
+}}, 1000);
+</script>
+<style>
+body {{
+    background-color: #262730
+}}
+</style>""", height=50)
             # st.write(test['problems'][st.session_state.current_problem_index]['description'])
             df = pd.DataFrame(np.array([
                 [
@@ -135,7 +171,7 @@ def candidate():
                     participant_id = "".join(random.choices(string.ascii_letters, k=10))
                     new_participant = {
                         "user": st.session_state.user,
-                        "started_at": datetime.now(),
+                        "started_at": datetime.now(timezone.utc),
                         "finished_at": None,
                         "solutions": [],
                         "overall_code_quality": 0,
