@@ -3,6 +3,7 @@ from streamlit_extras.switch_page_button import switch_page
 from st_pages import show_pages, Page, hide_pages
 
 from utils.init import initialize_app
+from utils.components import sidebar_logout
 
 
 def create_new_test():
@@ -19,6 +20,9 @@ def create_new_test():
         Page(path='pages/recruiter/2_My_Tests.py'),
     ])
     hide_pages(["candidate"])
+    
+    # Add Logout button to sidebar
+    sidebar_logout()
     
     # Header
     st.header("Create New Test")
