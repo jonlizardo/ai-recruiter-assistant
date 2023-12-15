@@ -11,6 +11,7 @@ def my_tests():
     # Page Config
     st.set_page_config(
         page_title="My Tests | Neuradev Coding Test Platform",
+        layout="wide",
         initial_sidebar_state="expanded",
     )
     
