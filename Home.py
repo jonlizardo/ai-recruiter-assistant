@@ -6,6 +6,7 @@ from PIL import Image
 
 from utils.init import initialize_app
 from utils.auth import signup, signin
+from utils.components import hide_sidebar
 
 
 # Home Page
@@ -39,16 +40,7 @@ def home():
         recruiter_login_form()
     
     # Hide Sidebar
-    st.markdown(
-        """
-        <style>
-        [data-testid=stSidebar], [data-testid=collapsedControl] {
-            display: none !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+    hide_sidebar()
     
 
 # Candidate Login Form

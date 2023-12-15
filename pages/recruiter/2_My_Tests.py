@@ -3,7 +3,7 @@ from streamlit_extras.switch_page_button import switch_page
 from st_pages import show_pages, Page, hide_pages
 
 from utils.init import initialize_app
-from utils.components import sidebar_logout
+from utils.components import sidebar_logout, hide_seperator_from_sidebar
 
 
 def my_tests():
@@ -22,16 +22,7 @@ def my_tests():
     hide_pages(["candidate"])
     
     # Hide seperator on Sidebar
-    st.markdown(
-        """
-        <style>
-        [data-testid=stSidebarNavSeparator] {
-            display: none !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+    hide_seperator_from_sidebar()
     
     # Add Logout button to sidebar
     sidebar_logout()

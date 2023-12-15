@@ -7,7 +7,7 @@ from google.cloud import firestore
 
 from utils.db import db
 from utils.init import initialize_app
-from utils.components import sidebar_logout
+from utils.components import sidebar_logout, hide_seperator_from_sidebar
 from utils.constants import categories
 
 import random
@@ -30,16 +30,7 @@ def create_new_test():
     hide_pages(["candidate"])
     
     # Hide seperator on Sidebar
-    st.markdown(
-        """
-        <style>
-        [data-testid=stSidebarNavSeparator] {
-            display: none !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+    hide_seperator_from_sidebar()
     
     # Add Logout button to sidebar
     sidebar_logout()

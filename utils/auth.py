@@ -1,3 +1,6 @@
+import streamlit as st
+from streamlit_extras.switch_page_button import switch_page
+
 from firebase_admin import auth as auth_admin
 import pyrebase
 from datetime import datetime
@@ -47,3 +50,6 @@ def signup(email, password):
     except Exception as e:
         return False, f"{e}"
     
+def signout():
+    st.session_state.is_authenticated = False
+    switch_page('home')
