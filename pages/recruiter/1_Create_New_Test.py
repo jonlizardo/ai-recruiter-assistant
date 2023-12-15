@@ -31,9 +31,11 @@ def create_new_test():
     # Header
     st.header("Create New Test")
     
+    if 'problems' not in st.session_state:
+        st.session_state.problems = []
+    
     # Form
     with st.form("new_test_form", border=False):
-        problems = []
         selected_topic = pills(
             "Select a test topic",
             options=[
@@ -49,6 +51,8 @@ def create_new_test():
         with col1:
             with st.container(border=True):
                 st.subheader("Problems")
+                for i, problem in enumerate(st.session_state.problems):
+                    st.write(f"{i + 1}. {problem['description']}")
 
         with col2:
             with st.container(border=True):
@@ -67,14 +71,16 @@ def create_new_test():
                         else:
                             with st.spinner("Saving..."):
                                 try:
-                                    db.collection("problems").add({
+                                    new_problem = db.collection("problems").add({
                                         "topic": selected_topic,
                                         "description": new_problem_description,
                                         "category": new_problem_category,
                                         "created_at": firestore.SERVER_TIMESTAMP,
                                         "creator": "test_user_id"
-                                    })
+                                    })[1]
+                                    st.session_state.problems.append(new_problem.get().to_dict())
                                     st.success("Successfully saved")
+                                    st.rerun()
                                 except Exception as e:
                                     st.error(f"Failed to save: {e}")
                         
