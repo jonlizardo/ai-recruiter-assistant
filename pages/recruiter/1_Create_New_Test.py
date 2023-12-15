@@ -3,7 +3,7 @@ from streamlit_extras.switch_page_button import switch_page
 from streamlit_pills import pills
 from st_pages import show_pages, Page, hide_pages
 
-from google.cloud import firestore
+from datetime import datetime
 
 from utils.db import db
 from utils.init import initialize_app
@@ -79,7 +79,7 @@ def create_new_test():
                                     new_test_code = "".join(random.choices(string.digits, k=5))
                                     db.collection("tests").document(new_test_code).set({
                                         "creator": st.session_state.user["email"],
-                                        "created_at": firestore.SERVER_TIMESTAMP,
+                                        "created_at": datetime.now(),
                                         "topic": selected_topic,
                                         "participants": [],
                                         "time_limit": time_limit,
@@ -134,7 +134,7 @@ def create_new_test():
                                             "topic": selected_topic,
                                             "description": new_problem_description,
                                             "category": new_problem_category,
-                                            "created_at": firestore.SERVER_TIMESTAMP,
+                                            "created_at": datetime.now(),
                                             "creator": st.session_state.user["email"],
                                         })[1]
                                         st.session_state.problems.append(new_problem.get().to_dict())
