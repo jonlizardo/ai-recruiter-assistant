@@ -69,7 +69,7 @@ def candidate():
                 [
                     f"{i+1}. {problem['description']}",
                     '  ✔' if i < st.session_state.current_problem_index or (i == st.session_state.current_problem_index and st.session_state.submitted_current_problem)
-                    else '⭕' if (i == st.session_state.current_problem_index and not st.session_state.submitted_current_problem) else '⚫'
+                    else '⚫'
                 ] for i, problem in enumerate(test['problems'])]), columns=("Problem", "Done"))
             
             st.dataframe(df, use_container_width=True, hide_index=True, column_config={})
