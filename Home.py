@@ -1,12 +1,10 @@
 import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
+from st_pages import show_pages, Page, hide_pages
 
-from pages.candidate import candidate
-
-from utils.init import initialize_app
-import streamlit as st
 from PIL import Image
 
+from utils.init import initialize_app
 from utils.auth import signup, signin
 
 
@@ -18,9 +16,17 @@ def home():
         initial_sidebar_state="collapsed",
     )
     
+    # Show/Hide Pages on Sidebar
+    show_pages([
+        Page(path='Home.py'),
+        Page(path='pages/recruiter/1_Create_New_Test.py'),
+        Page(path='pages/recruiter/2_My_Tests.py'),
+        Page(path='pages/candidate/1_Test_Room.py'),
+    ])
+
     # Header
     st.header("Eugene AI Testing Platform")
-
+    
     # Hero Image
     hero_image = Image.open('assets/images/starter.jpg')
     st.image(hero_image)
@@ -100,9 +106,9 @@ if __name__ == '__main__':
     initialize_app()
     if st.session_state.is_authenticated:
         if st.session_state.role == "recruiter":
-            switch_page('recruiter_my_tests')
+            switch_page('create_new_test')
         elif st.session_state.role == "candidate":
-            candidate()
+            switch_page('test_room')
         else:
             home()
     else:
