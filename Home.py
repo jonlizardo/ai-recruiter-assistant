@@ -82,7 +82,7 @@ def recruiter_login_form():
                     st.session_state.is_authenticated = True
                     st.rerun()
                 else:
-                    st.error(f"Failed to sign in. {payload}")
+                    st.error(f"Failed to sign in. Email or password is incorrrect.")
                 
         if submitted_signup:
             with st.spinner("Creating your account..."):
