@@ -127,7 +127,7 @@ def create_new_test():
                     with tabs[1]:
                         st.text_input("Topic", value=selected_topic, disabled=True)
                         new_problem_description = st.text_area("Description")
-                        new_problem_category = st.selectbox("Category", ("Basic", "Algorithm", "Practice"))
+                        new_problem_category = st.selectbox("Category", ("Conceptual Problems", "Algorithmic Problems", "Practical Problems"))
                         if st.form_submit_button("Save and Add"):
                             if not selected_topic:
                                 st.error("Select a test topic")
