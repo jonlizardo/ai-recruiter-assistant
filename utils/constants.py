@@ -1,1 +1,1 @@
-categories = ["Basic", "Algorithm", "Practice"]
+categories = ["Conceptual Problems", "Algorithmic Problems", "Practical Problems"]
