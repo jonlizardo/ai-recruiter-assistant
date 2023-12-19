@@ -104,14 +104,29 @@ body {{
 }}
 </style>""", height=50)
             # st.write(test['problems'][st.session_state.current_problem_index]['description'])
-            df = pd.DataFrame(np.array([
-                [
-                    f"{i+1}. {problem['description']}",
-                    '  ✔' if i < st.session_state.current_problem_index or (i == st.session_state.current_problem_index and st.session_state.submitted_current_problem)
-                    else '⚫'
-                ] for i, problem in enumerate(test['problems'])]), columns=("Problem", "Done"))
+            # df = pd.DataFrame(np.array([
+            #     [
+            #         f"{i+1}. {problem['description']}",
+            #         '  ✔' if i < st.session_state.current_problem_index or (i == st.session_state.current_problem_index and st.session_state.submitted_current_problem)
+            #         else '⚫'
+            #     ] for i, problem in enumerate(test['problems'])]), columns=("Problem", "Done"))
             
-            st.dataframe(df, use_container_width=True, hide_index=True, column_config={})
+            # st.dataframe(df, use_container_width=True, hide_index=True, column_config={})
+            
+            data_df = pd.DataFrame(
+                {
+                    "Done": ['  ✔' if i < st.session_state.current_problem_index or (i == st.session_state.current_problem_index and st.session_state.submitted_current_problem)
+                        else '⚫' for i, problem in enumerate(test['problems'])],
+                    "No": [i+1 for i, problem in enumerate(test["problems"])],
+                    "Category": [problem["category"] for problem in test["problems"]],
+                    "Time Limit": [f"{problem['time_limit']} mins" for problem in test["problems"]],
+                    "Title": [problem["title"] for problem in test["problems"]],
+                    "Description": [problem["description"] for problem in test["problems"]],
+                }
+            )
+            st.dataframe(data_df, hide_index=True, column_config={
+                "Done": st.column_config.TextColumn("")
+            })
             
             with st.columns([1, 2])[0]:
                 if st.session_state.current_problem_index < len(test["problems"]) - 1:
@@ -192,10 +207,9 @@ body {{
                     signout()
     # If test in progress
     elif not st.session_state.test_finished:
-        # st.subheader(f"Problem {st.session_state.current_problem_index + 1}. {test['problems'][st.session_state.current_problem_index]['description']}")
-        st.subheader(f"Problem {st.session_state.current_problem_index + 1}")
-        st.write(test['problems'][st.session_state.current_problem_index]['description'])
-        # st.subheader(f"Enter your solution here")
+        problem = test['problems'][st.session_state.current_problem_index]
+        st.subheader(f"Problem {st.session_state.current_problem_index + 1}. {problem['title']}")
+        st.write(problem['description'])
 
         col1, col2 = st.columns([3, 2])
         language='python'
