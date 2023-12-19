@@ -2,6 +2,10 @@ import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
 from st_pages import show_pages, Page, hide_pages
 
+import pandas as pd
+
+from google.cloud.firestore_v1.base_query import FieldFilter
+
 from utils.db import db
 from utils.init import initialize_app
 from utils.components import sidebar_logout, hide_seperator_from_sidebar
@@ -32,7 +36,8 @@ def my_tests():
     # Main Section
     st.header("My Tests")
     
-    my_tests = db.collection("tests").where("creator", "==", st.session_state.user["email"]).get() 
+    my_tests = db.collection("tests").where(
+        filter=FieldFilter("creator", "==", st.session_state.user["email"])).get() 
 
     if len(my_tests) == 0:
         st.subheader("😔 Oops! No test created")
@@ -48,20 +53,29 @@ def my_tests():
                 col1, col2 = st.columns(2)
                 with col1:
                     st.subheader('Problems')
-                    for j, problem in enumerate(test.get('problems')):
-                        st.write(f"{j+1}. {problem['description']}")
+                    problems = test.get("problems")
+                    data_df = pd.DataFrame(
+                        {
+                            "No": [i+1 for i, problem in enumerate(problems)],
+                            "Category": [problem["category"] for problem in problems],
+                            "Time Limit": [f"{problem['time_limit']} mins" for problem in problems],
+                            "Title": [problem["title"] for problem in problems],
+                            "Description": [problem["description"] for problem in problems],
+                        }
+                    )
+                    st.dataframe(data_df, hide_index=True)
                 with col2:
                     st.subheader('Participants')
                     participants = list(test.to_dict()['participants'].values())
-                    # participants = [participant for participant in list(test.to_dict()['participants'].values())]
+                    participants = [participant for participant in participants if participant["finished_at"]]
 
                     if len(participants) == 0:
                         st.write("No participant yet")
                     else:
                         for j, participant in enumerate(participants):
                             total_problems = len(test.get('problems'))
-                            with st.expander(f"{participant['user']['first_name']} {participant['user']['last_name']} ({'Finished' if 'finished_at' in participant else 'In progress'})"):
-                                if "finished_at" in participant:
+                            with st.expander(f"{participant['user']['first_name']} {participant['user']['last_name']} ({'Finished' if participant['finished_at'] else 'In progress'})"):
+                                if participant["finished_at"]:
                                     with st.container(border=True):
                                         st.write(f"Passed: {len([solution for solution in participant['solutions'] if solution['passed']])}/{total_problems}")
                                         st.write(f"Overall rating: {round(participant['overall_rating'], 1)}/5")
@@ -70,17 +84,23 @@ def my_tests():
                                 if total_problems > 0:
                                     problem_tabs = st.tabs([f"Problem {k + 1}" for k, problem in enumerate(test.get('problems'))])
                                     for k, problem_tab in enumerate(problem_tabs):
-                                        solution = participant['solutions'][k]
                                         with problem_tab:
-                                            st.code(solution["code"])
-                                            if solution['passed']:
-                                                st.success('Passed')
+                                            if k >= len(participant['solutions']):
+                                                st.write("No solution submitted")
                                             else:
-                                                st.error('Failed')
-                                            with st.container(border=True):
-                                                st.write(f"Overall rating: {solution['overall_rating']}/5")
-                                                st.write(f"Code quality: {solution['code_quality']}/5")
-                                            st.write(solution['reason'])
+                                                solution = participant['solutions'][k]
+                                                with st.container(border=True):
+                                                    st.markdown("#### Candidate solution")
+                                                    st.code(solution["code"])
+                                                    st.write(solution["explanation"])
+                                                if solution['passed']:
+                                                    st.success('Result: Passed')
+                                                else:
+                                                    st.error('Result: Failed')
+                                                with st.container(border=True):
+                                                    st.write(f"Overall rating: {solution['overall_rating']}/5")
+                                                    st.write(f"Code quality: {solution['code_quality']}/5")
+                                                    st.write(solution['reason'])
 # Run the Streamlit appx
 if __name__ == '__main__':
     initialize_app()
