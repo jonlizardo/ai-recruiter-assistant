@@ -20,9 +20,9 @@ def assess_code(problem, code):
 {code}
 
 - Question
-1. Does the above Python code solve the given problem correctly? Just answer with Yes or No.
-2. How would you rate the code quality from 1 to 5? Just answer with one-decimal number between 1 and 5.
-3. How would you rate the code overall from your first answer and second answer from 1 to 5? Just answer with one-decimal number between 1 and 5.
+1. Does the above Python code solve the given problem correctly? Just answer with Yes or No. Answer No when you cannot determine.
+2. How would you rate the code quality from 1 to 5? Just answer with one-decimal number between 1 and 5. Answer 1 when you cannot determine.
+3. How would you rate the code overall from your first answer and second answer from 1 to 5? Just answer with one-decimal number between 1 and 5. Answer 1 when you cannot determine.
 3. What's the reason behind your answer? Just answer with 2-7 sentences""")
             
             i1, i2, i3, i4 = 0, response.content.index("\n2. "), response.content.index("\n3. "), response.content.index("\n4. ")
