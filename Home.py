@@ -26,7 +26,7 @@ def home():
     ])
 
     # Header
-    st.header("Eugene AI Testing Platform")
+    st.header("Ferdinand AI Testing Platform")
     
     # Hero Image
     hero_image = Image.open('assets/images/starter.jpg')
