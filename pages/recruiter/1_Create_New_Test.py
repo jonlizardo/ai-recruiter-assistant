@@ -3,6 +3,8 @@ from streamlit_extras.switch_page_button import switch_page
 from streamlit_pills import pills
 from st_pages import show_pages, Page, hide_pages
 
+from google.cloud.firestore_v1.base_query import FieldFilter
+
 from datetime import datetime
 
 from utils.db import db
@@ -133,7 +135,10 @@ def create_new_test():
                             st.session_state.manual_filter_category = filter_category
                             st.rerun()
                         if st.session_state.manual_filter_category:
-                            all_problems = [document.to_dict() for document in db.collection("problems").where('topic', '==', selected_topic).where('category', '==', st.session_state.manual_filter_category).get()]
+                            all_problems = [document.to_dict() for document in db.collection("problems")
+                                            .where(filter=FieldFilter('topic', '==', selected_topic))
+                                            .where(filter=FieldFilter('category', '==', st.session_state.manual_filter_category))
+                                            .get()]
                             selected_problem = st.selectbox("Problem", [problem for problem in all_problems], format_func=lambda problem: problem["description"])
                             if st.form_submit_button("Add to Test", type="primary"):
                                 st.session_state.problems.append(selected_problem)
