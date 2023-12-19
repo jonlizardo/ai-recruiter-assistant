@@ -120,10 +120,12 @@ def create_new_test():
                             if sum(problem_counts) == 0:
                                 st.error("You should be select one or more problems")
                             else:
-                                all_problems = [document.to_dict() for document in db.collection("problems").where('topic', '==', selected_topic).get()]
+                                all_problems = [document.to_dict() for document in db.collection("problems")
+                                                .where(filter=FieldFilter('topic', '==', selected_topic))
+                                                .get()]
                                 for i, category in enumerate(categories):
                                     problem_count = problem_counts[i]
-                                    category_problems = list(filter(lambda problem: problem['category'] == f"{category} Problems", all_problems))
+                                    category_problems = list(filter(lambda problem: problem['category'] == category, all_problems))
                                     random_indices = random.sample(range(len(category_problems)), min(len(category_problems), problem_count))
                                     for index in random_indices:
                                         st.session_state.problems.append(category_problems[index])
