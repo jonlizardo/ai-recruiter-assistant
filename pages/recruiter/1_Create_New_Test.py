@@ -177,7 +177,7 @@ def create_new_test():
                         st.rerun()
                 else:
                     st.write("No problem to select")
-                with st.expander("➕ Create New Problem"):
+                with st.expander("Create New Problem"):
                     st.text_input("Topic", value=selected_topic, disabled=True)
                     new_problem_title = st.text_input("Title")
                     new_problem_description = st.text_area("Description")
@@ -213,7 +213,7 @@ def create_new_test():
                                     st.rerun()
                                 except Exception as e:
                                     st.error(f"Failed to save: {e}")
-                with st.expander("🔀 Random Select"):
+                with st.expander("Random Select"):
                     problem_counts = [0] * len(categories)
                     for i, category in enumerate(categories):
                         problem_counts[i] = st.number_input(category, step=1, min_value=0, key=f"Problem Counts for {category}")
