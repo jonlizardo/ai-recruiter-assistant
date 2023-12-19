@@ -17,6 +17,7 @@ import string
 
 def reset_state():
     del st.session_state.problems
+    del st.session_state.manual_filter_category
 
 def create_new_test():
     # Page Config
@@ -49,17 +50,19 @@ def create_new_test():
     # Initialize session state
     if 'problems' not in st.session_state:
         st.session_state.problems = []
+    if 'manual_filter_category' not in st.session_state:
+        st.session_state.manual_filter_category = None
     
     # Form
+    selected_topic = pills(
+        "Select a test topic",
+        options=[
+            "Node JS", "Python", "Machine Learning & Deep Learning", "Java", "Javascript", "ASP.NET", "C#",
+            "PHP", "MY SQL", "SQL Server", "GOLang", "C++", "Data Structures & Algorithms","Ruby & Rails",
+            "Rust", "LangChain", "llamaIndex", "Object Oriented Programming", "Unity", "Swift", "Objective-C"
+        ],
+    )
     with st.form("new_test_form", border=False):
-        selected_topic = pills(
-            "Select a test topic",
-            options=[
-                "Node JS", "Python", "Machine Learning & Deep Learning", "Java", "Javascript", "ASP.NET", "C#",
-                "PHP", "MY SQL", "SQL Server", "GOLang", "C++", "Data Structures & Algorithms","Ruby & Rails",
-                "Rust", "LangChain", "llamaIndex", "Object Oriented Programming", "Unity", "Swift", "Objective-C"
-            ],
-        )
         
         with st.columns([1, 3])[0]:
             time_limit = st.number_input("Time limit (in minutes)", min_value=10, step=5)
@@ -104,7 +107,7 @@ def create_new_test():
             with col2:
                 with st.container(border=False):
                     st.subheader("Select Problems")
-                    tabs = st.tabs(["Select From Existing Problems", "Add New Problem"])
+                    tabs = st.tabs(["Auto Select", "Manual Select", "Add New Problem"])
                     with tabs[0]:
                         problem_counts = [0] * len(categories)
                         for i, category in enumerate(categories):
@@ -118,16 +121,28 @@ def create_new_test():
                                 all_problems = [document.to_dict() for document in db.collection("problems").where('topic', '==', selected_topic).get()]
                                 for i, category in enumerate(categories):
                                     problem_count = problem_counts[i]
-                                    category_problems = list(filter(lambda problem: problem['category'] == category, all_problems))
+                                    category_problems = list(filter(lambda problem: problem['category'] == f"{category} Problems", all_problems))
                                     random_indices = random.sample(range(len(category_problems)), min(len(category_problems), problem_count))
                                     for index in random_indices:
                                         st.session_state.problems.append(category_problems[index])
                                 st.rerun()
                                 
                     with tabs[1]:
+                        filter_category = st.selectbox("Category:", categories, format_func=lambda category: f"{category} Problems")
+                        if st.form_submit_button("Filter"):
+                            st.session_state.manual_filter_category = filter_category
+                            st.rerun()
+                        if st.session_state.manual_filter_category:
+                            all_problems = [document.to_dict() for document in db.collection("problems").where('topic', '==', selected_topic).where('category', '==', f"{st.session_state.manual_filter_category} Problems").get()]
+                            selected_problem = st.selectbox("Problem", [problem for problem in all_problems], format_func=lambda problem: problem["description"])
+                            if st.form_submit_button("Add to Test", type="primary"):
+                                st.session_state.problems.append(selected_problem)
+                                st.rerun()
+                                
+                    with tabs[2]:
                         st.text_input("Topic", value=selected_topic, disabled=True)
                         new_problem_description = st.text_area("Description")
-                        new_problem_category = st.selectbox("Category", ("Conceptual Problems", "Algorithmic Problems", "Practical Problems"))
+                        new_problem_category = st.selectbox("Category", categories, format_func=lambda category: f"{category} Problems")
                         if st.form_submit_button("Save and Add"):
                             if not selected_topic:
                                 st.error("Select a test topic")
