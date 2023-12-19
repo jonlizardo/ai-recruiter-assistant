@@ -11,7 +11,7 @@ from utils.db import db
 from utils.auth import signout
 from utils.init import initialize_app
 from utils.components import sidebar_logout, hide_seperator_from_sidebar
-from utils.constants import categories
+from utils.constants import categories, topics
 
 import random
 import string
@@ -58,11 +58,7 @@ def create_new_test():
     # Form
     selected_topic = pills(
         "Select a test topic",
-        options=[
-            "Node JS", "Python", "Machine Learning & Deep Learning", "Java", "Javascript", "ASP.NET", "C#",
-            "PHP", "MY SQL", "SQL Server", "GOLang", "C++", "Data Structures & Algorithms","Ruby & Rails",
-            "Rust", "LangChain", "llamaIndex", "Object Oriented Programming", "Unity", "Swift", "Objective-C"
-        ],
+        options=topics,
     )
     with st.form("new_test_form", border=False):
         
