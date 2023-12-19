@@ -2,6 +2,10 @@ import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
 from st_pages import show_pages, Page, hide_pages
 
+import pandas as pd
+
+from google.cloud.firestore_v1.base_query import FieldFilter
+
 from utils.db import db
 from utils.init import initialize_app
 from utils.components import sidebar_logout, hide_seperator_from_sidebar
@@ -32,7 +36,8 @@ def my_tests():
     # Main Section
     st.header("My Tests")
     
-    my_tests = db.collection("tests").where("creator", "==", st.session_state.user["email"]).get() 
+    my_tests = db.collection("tests").where(
+        filter=FieldFilter("creator", "==", st.session_state.user["email"])).get() 
 
     if len(my_tests) == 0:
         st.subheader("😔 Oops! No test created")
@@ -48,8 +53,17 @@ def my_tests():
                 col1, col2 = st.columns(2)
                 with col1:
                     st.subheader('Problems')
-                    for j, problem in enumerate(test.get('problems')):
-                        st.write(f"{j+1}. {problem['description']}")
+                    problems = test.get("problems")
+                    data_df = pd.DataFrame(
+                        {
+                            "No": [i+1 for i, problem in enumerate(problems)],
+                            "Category": [problem["category"] for problem in problems],
+                            "Time Limit": [f"{problem['time_limit']} mins" for problem in problems],
+                            "Title": [problem["title"] for problem in problems],
+                            "Description": [problem["description"] for problem in problems],
+                        }
+                    )
+                    st.dataframe(data_df, hide_index=True)
                 with col2:
                     st.subheader('Participants')
                     participants = list(test.to_dict()['participants'].values())
