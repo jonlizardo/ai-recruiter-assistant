@@ -240,7 +240,7 @@ body {{
                     if not solution_code:
                         st.error("Code should not be empty")
                     else:
-                        passed, code_quality, overall_rating, reason = assess_code(problem=test["problems"][st.session_state.current_problem_index]["description"], code=solution_code, explanation=solution_explanation)
+                        passed, code_quality, explanation_rating, overall_rating, reason = assess_code(problem=test["problems"][st.session_state.current_problem_index]["description"], code=solution_code, explanation=solution_explanation)
 
                         participants = test["participants"]
                         participants[st.session_state.participant_id]["solutions"].append({
@@ -248,6 +248,7 @@ body {{
                             "explanation": solution_explanation,
                             "passed": passed,
                             "code_quality": code_quality,
+                            "explanation_rating": explanation_rating,
                             "overall_rating": overall_rating,
                             "reason": reason,
                         })
