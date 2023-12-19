@@ -22,7 +22,7 @@ import string
 
 def reset_state():
     del st.session_state.problem_hashes
-    del st.session_state.manual_filter_category
+    del st.session_state.selected_topic
 
 def create_new_test():
     # Page Config
@@ -55,14 +55,18 @@ def create_new_test():
     # Initialize session state
     if 'problem_hashes' not in st.session_state:
         st.session_state.problem_hashes = []
-    if 'manual_filter_category' not in st.session_state:
-        st.session_state.manual_filter_category = None
+    if 'selected_topic' not in st.session_state:
+        st.session_state.selected_topic = None
+    
     
     # Form
     selected_topic = pills(
         "Select a test topic",
         options=topics,
     )
+    if st.session_state.selected_topic != selected_topic:
+        st.session_state.problem_hashes = []
+    st.session_state.selected_topic = selected_topic
     all_problems = [document.to_dict() for document in db.collection("problems")
                     .where(filter=FieldFilter('topic', '==', selected_topic))
                     .get()]
@@ -115,9 +119,9 @@ def create_new_test():
                         
                     cols = st.columns([1, 1, 1])
                     with cols[1]:    
-                        save_test = st.form_submit_button("Save Test", type="primary")
+                        save_test = st.form_submit_button("Save Test", type="primary", use_container_width=True)
                     with cols[2]:    
-                        reset_problems = st.form_submit_button("Reset", type="secondary")
+                        reset_problems = st.form_submit_button("Reset", type="secondary", use_container_width=True)
 
                     if save_test:
                         with st.spinner("Saving..."):
