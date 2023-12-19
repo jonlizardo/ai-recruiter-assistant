@@ -19,16 +19,21 @@ def assess_code(problem, code, explanation):
 - Code
 {code}
 
+- Explanation
+{explanation}
+
 - Question
 1. Does the above Python code solve the given problem correctly? Just answer with Yes or No. Answer No when you cannot determine.
 2. How would you rate the code quality from 1 to 5? Just answer with one-decimal number between 1 and 5. Answer 1 when you cannot determine.
-3. How would you rate the code overall from your first answer and second answer from 1 to 5? Just answer with one-decimal number between 1 and 5. Answer 1 when you cannot determine.
-3. What's the reason behind your answer? Just answer with 2-7 sentences""")
+3. How would you rate the explanation about the code from 1 to 5? Just answer with one-decimal number between 1 and 5. Answer 1 when you cannot determine.
+4. How would you rate the solution(code and explanation) overall? Just answer with one-decimal number between 1 and 5. Answer 1 when you cannot determine.
+5. What's the reason behind your answer? Just answer with 2-7 sentences""")
             
-            i1, i2, i3, i4 = 0, response.content.index("\n2. "), response.content.index("\n3. "), response.content.index("\n4. ")
+            i1, i2, i3, i4, i5 = 0, response.content.index("\n2. "), response.content.index("\n3. "), response.content.index("\n4. "), response.content.index("\n5. ")
             passed = True if response.content[i1+3:i2].lower() == 'yes' else False
             code_quality = float(response.content[i2+3:i3])
-            overall_rating = float(response.content[i3+3:i4])
-            reason = response.content[i4+3:]
+            explanation_rating = float(response.content[i3+3:i4])
+            overall_rating = float(response.content[i4+3:i5])
+            reason = response.content[i5+3:]
             
-            return passed, code_quality, overall_rating, reason
+            return passed, code_quality, explanation_rating, overall_rating, reason
