@@ -33,6 +33,7 @@ def candidate():
     st.set_page_config(
         page_title="Test Room | Neuradev Coding Test Platform",
         initial_sidebar_state="expanded",
+        layout="wide"
     )
     
     # Show/Hide Pages on Sidebar
