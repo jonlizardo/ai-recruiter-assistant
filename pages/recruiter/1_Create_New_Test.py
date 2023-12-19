@@ -129,7 +129,7 @@ def create_new_test():
                                 
                     with tabs[1]:
                         filter_category = st.selectbox("Category:", categories, format_func=lambda category: f"{category} Problems")
-                        if st.form_submit_button("Filter"):
+                        if st.form_submit_button("Get Problems"):
                             st.session_state.manual_filter_category = filter_category
                             st.rerun()
                         if st.session_state.manual_filter_category:
