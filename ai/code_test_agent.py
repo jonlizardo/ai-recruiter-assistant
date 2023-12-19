@@ -9,7 +9,7 @@ from codeinterpreterapi import CodeInterpreterSession
 from dotenv import  load_dotenv, find_dotenv
 
 
-def assess_code(problem, code):
+def assess_code(problem, code, explanation):
     with st.spinner("Analyzing your submission"):
         with CodeInterpreterSession(llm=ChatOpenAI(model="gpt-3.5-turbo", temperature=0.5)) as session:
             response = session.generate_response(

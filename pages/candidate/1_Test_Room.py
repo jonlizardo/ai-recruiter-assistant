@@ -235,15 +235,17 @@ body {{
                     min_lines=30,
                     key="ace",
                 )
+                solution_explanation = st.text_area("Explanation")
                 if st.columns([3, 2])[1].form_submit_button("🔥 Submit Solution" if not st.session_state.submitted_current_problem else "✔ Submitted", type="primary", disabled=st.session_state.submitted_current_problem, use_container_width=True):
                     if not solution_code:
                         st.error("Code should not be empty")
                     else:
-                        passed, code_quality, overall_rating, reason = assess_code(problem=test["problems"][st.session_state.current_problem_index]["description"], code=solution_code)
+                        passed, code_quality, overall_rating, reason = assess_code(problem=test["problems"][st.session_state.current_problem_index]["description"], code=solution_code, explanation=solution_explanation)
 
                         participants = test["participants"]
                         participants[st.session_state.participant_id]["solutions"].append({
                             "code": solution_code,
+                            "explanation": solution_explanation,
                             "passed": passed,
                             "code_quality": code_quality,
                             "overall_rating": overall_rating,
