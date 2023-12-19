@@ -10,6 +10,7 @@ from datetime import datetime
 from utils.db import db
 from utils.auth import signout
 from utils.init import initialize_app
+from utils.cypher import calculate_hash
 from utils.components import sidebar_logout, hide_seperator_from_sidebar
 from utils.constants import categories, topics
 
@@ -170,6 +171,7 @@ def create_new_test():
                                             "category": new_problem_category,
                                             "created_at": datetime.now(),
                                             "creator": st.session_state.user["email"],
+                                            "hash": calculate_hash(new_problem_description)
                                         })[1]
                                         st.session_state.problems.append(new_problem.get().to_dict())
                                         st.success("Successfully saved")
