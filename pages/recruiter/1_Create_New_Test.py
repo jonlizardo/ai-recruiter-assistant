@@ -144,21 +144,29 @@ def create_new_test():
                                 
                     with tabs[2]:
                         st.text_input("Topic", value=selected_topic, disabled=True)
+                        new_problem_title = st.text_input("Title")
                         new_problem_description = st.text_area("Description")
                         new_problem_category = st.selectbox("Category", categories, format_func=lambda category: f"{category} Problems")
+                        new_problem_time_limit = st.number_input("Time Limit (mins)", step=1, min_value=5)
                         if st.form_submit_button("Save and Add"):
                             if not selected_topic:
                                 st.error("Select a test topic")
+                            elif not new_problem_title:
+                                st.error("Title should not be empty.")
                             elif not new_problem_description:
                                 st.error("Description should not be empty.")
                             elif not new_problem_category:
                                 st.error("Select a category")
+                            elif not new_problem_time_limit:
+                                st.error("Enter time limit")
                             else:
                                 with st.spinner("Saving..."):
                                     try:
                                         new_problem = db.collection("problems").add({
                                             "topic": selected_topic,
+                                            "title": new_problem_title,
                                             "description": new_problem_description,
+                                            "time_limit": new_problem_time_limit,
                                             "category": new_problem_category,
                                             "created_at": datetime.now(),
                                             "creator": st.session_state.user["email"],
