@@ -89,15 +89,18 @@ def my_tests():
                                                 st.write("No solution submitted")
                                             else:
                                                 solution = participant['solutions'][k]
-                                                st.code(solution["code"])
+                                                with st.container(border=True):
+                                                    st.markdown("#### Candidate solution")
+                                                    st.code(solution["code"])
+                                                    st.write(solution["explanation"])
                                                 if solution['passed']:
-                                                    st.success('Passed')
+                                                    st.success('Result: Passed')
                                                 else:
-                                                    st.error('Failed')
+                                                    st.error('Result: Failed')
                                                 with st.container(border=True):
                                                     st.write(f"Overall rating: {solution['overall_rating']}/5")
                                                     st.write(f"Code quality: {solution['code_quality']}/5")
-                                                st.write(solution['reason'])
+                                                    st.write(solution['reason'])
 # Run the Streamlit appx
 if __name__ == '__main__':
     initialize_app()
