@@ -237,9 +237,10 @@ body {{
                     auto_update= True, #col2.checkbox("Auto update", value=True),
                     readonly=st.session_state.submitted_current_problem,
                     min_lines=30,
-                    key="ace",
+                    key=f"ace_{st.session_state.current_problem_index}",
                 )
-                solution_explanation = st.text_area("Explanation")
+                solution_explanation = st.text_area("Explanation", key=f"explanation_textarea_{st.session_state.current_problem_index}")
+                
                 if st.columns([3, 2])[1].form_submit_button("🔥 Submit Solution" if not st.session_state.submitted_current_problem else "✔ Submitted", type="primary", disabled=st.session_state.submitted_current_problem, use_container_width=True):
                     if not solution_code:
                         st.error("Code should not be empty")
@@ -262,8 +263,9 @@ body {{
                         })
                         st.session_state.submitted_current_problem = True
                         # Next Button logic
-                        st.session_state.current_problem_index += 1
-                        st.session_state.submitted_current_problem = False
+                        if st.session_state.current_problem_index < len(test["problems"]) - 1:
+                            st.session_state.current_problem_index += 1
+                            st.session_state.submitted_current_problem = False
                         st.rerun()
     # If test finished
     else:
