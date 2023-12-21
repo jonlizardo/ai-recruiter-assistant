@@ -19,7 +19,7 @@ from utils.auth import signout
 from utils.components import sidebar_logout, hide_navitems_from_sidebar, hide_seperator_from_sidebar, hide_sidebar
 from utils.db import db
 
-from ai.code_test_agent import assess_code
+from ai.code_test_agent import assess_code_with_gpt4
 
 def reset_state():
     del st.session_state.test_started
@@ -29,20 +29,6 @@ def reset_state():
     del st.session_state.submitted_current_problem
 
 def candidate():
-    # Page Config
-    st.set_page_config(
-        page_title="Test Room | Neuradev Coding Test Platform",
-        initial_sidebar_state="expanded",
-        layout="wide"
-    )
-    
-    # Show/Hide Pages on Sidebar
-    show_pages([
-        Page(path='Home.py'),
-        Page(path='pages/candidate/1_Test_Room.py'),
-    ])
-    hide_pages(["create_new_test", "my_tests"])
-    
     # Initialize session state
     if 'test_started' not in st.session_state:
         st.session_state.test_started = False
@@ -54,6 +40,20 @@ def candidate():
         st.session_state.current_problem_index = 0
     if 'submitted_current_problem' not in st.session_state:
         st.session_state.submitted_current_problem = False
+        
+    # Page Config
+    st.set_page_config(
+        page_title="Test Room | Neuradev Coding Test Platform",
+        initial_sidebar_state="expanded",
+        layout="wide" if st.session_state.test_started else "centered"
+    )
+    
+    # Show/Hide Pages on Sidebar
+    show_pages([
+        Page(path='Home.py'),
+        Page(path='pages/candidate/1_Test_Room.py'),
+    ])
+    hide_pages(["create_new_test", "my_tests"])
     
     # Get test info
     test = db.collection("tests").document(st.session_state.test_code).get().to_dict()
@@ -142,11 +142,13 @@ body {{
                         solutions = participants[me]["solutions"]
                         overall_rating = sum([solution["overall_rating"] for solution in solutions]) / len(solutions)
                         overall_code_quality = sum([solution["code_quality"] for solution in solutions]) / len(solutions)
+                        overall_explanation_rating = sum([solution["explanation_rating"] for solution in solutions]) / len(solutions)
                         total_passed = len([solution for solution in solutions if solution["passed"]])
                         finished_at = datetime.now()
                         
                         participants[me]["overall_rating"] = overall_rating
                         participants[me]["overall_code_quality"] = overall_code_quality
+                        participants[me]["overall_explanation_rating"] = overall_explanation_rating
                         participants[me]["total_passed"] = total_passed
                         participants[me]["finished_at"] = finished_at
 
@@ -191,6 +193,7 @@ body {{
                         "finished_at": None,
                         "solutions": [],
                         "overall_code_quality": 0,
+                        "overall_explanation_rating": 0,
                         "overall_rating": 0,
                         "total_passed": 0,
                     }
@@ -234,30 +237,35 @@ body {{
                     auto_update= True, #col2.checkbox("Auto update", value=True),
                     readonly=st.session_state.submitted_current_problem,
                     min_lines=30,
-                    key="ace",
+                    key=f"ace_{st.session_state.current_problem_index}",
                 )
-                solution_explanation = st.text_area("Explanation")
+                solution_explanation = st.text_area("Explanation", key=f"explanation_textarea_{st.session_state.current_problem_index}")
+                
                 if st.columns([3, 2])[1].form_submit_button("🔥 Submit Solution" if not st.session_state.submitted_current_problem else "✔ Submitted", type="primary", disabled=st.session_state.submitted_current_problem, use_container_width=True):
                     if not solution_code:
                         st.error("Code should not be empty")
                     else:
-                        passed, code_quality, explanation_rating, overall_rating, reason = assess_code(problem=test["problems"][st.session_state.current_problem_index]["description"], code=solution_code, explanation=solution_explanation)
+                        code_test_result = assess_code_with_gpt4(problem=test["problems"][st.session_state.current_problem_index]["description"], code=solution_code, explanation=solution_explanation)
 
                         participants = test["participants"]
                         participants[st.session_state.participant_id]["solutions"].append({
                             "code": solution_code,
                             "explanation": solution_explanation,
-                            "passed": passed,
-                            "code_quality": code_quality,
-                            "explanation_rating": explanation_rating,
-                            "overall_rating": overall_rating,
-                            "reason": reason,
+                            "passed": code_test_result.passed,
+                            "code_quality": code_test_result.code_quality,
+                            "explanation_rating": code_test_result.explanation_rating,
+                            "overall_rating": code_test_result.overall_rating,
+                            "reason": code_test_result.reason,
                         })
                         
                         db.collection("tests").document(st.session_state.test_code).update({
                             "participants": participants
                         })
                         st.session_state.submitted_current_problem = True
+                        # Next Button logic
+                        if st.session_state.current_problem_index < len(test["problems"]) - 1:
+                            st.session_state.current_problem_index += 1
+                            st.session_state.submitted_current_problem = False
                         st.rerun()
     # If test finished
     else:
@@ -269,6 +277,7 @@ body {{
             st.write(f"🔥 Overall Rating: {round(my_test['overall_rating'], 1)}/5")
             st.write(f"✨ Solved problems: {len([solution for solution in solutions if solution['passed']])}/{len(test['problems'])}")
             st.write(f"📚 Code quality: {round(my_test['overall_code_quality'], 1)}/5")
+            st.write(f"👨‍🏫 Explanation rating: {round(my_test['overall_explanation_rating'], 1)}/5")
     
 # Run the Streamlit app
 if __name__ == '__main__':
