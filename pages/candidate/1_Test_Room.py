@@ -29,20 +29,6 @@ def reset_state():
     del st.session_state.submitted_current_problem
 
 def candidate():
-    # Page Config
-    st.set_page_config(
-        page_title="Test Room | Neuradev Coding Test Platform",
-        initial_sidebar_state="expanded",
-        layout="wide"
-    )
-    
-    # Show/Hide Pages on Sidebar
-    show_pages([
-        Page(path='Home.py'),
-        Page(path='pages/candidate/1_Test_Room.py'),
-    ])
-    hide_pages(["create_new_test", "my_tests"])
-    
     # Initialize session state
     if 'test_started' not in st.session_state:
         st.session_state.test_started = False
@@ -54,6 +40,20 @@ def candidate():
         st.session_state.current_problem_index = 0
     if 'submitted_current_problem' not in st.session_state:
         st.session_state.submitted_current_problem = False
+        
+    # Page Config
+    st.set_page_config(
+        page_title="Test Room | Neuradev Coding Test Platform",
+        initial_sidebar_state="expanded",
+        layout="wide" if st.session_state.test_started else "centered"
+    )
+    
+    # Show/Hide Pages on Sidebar
+    show_pages([
+        Page(path='Home.py'),
+        Page(path='pages/candidate/1_Test_Room.py'),
+    ])
+    hide_pages(["create_new_test", "my_tests"])
     
     # Get test info
     test = db.collection("tests").document(st.session_state.test_code).get().to_dict()
