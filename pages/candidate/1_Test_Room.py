@@ -19,7 +19,7 @@ from utils.auth import signout
 from utils.components import sidebar_logout, hide_navitems_from_sidebar, hide_seperator_from_sidebar, hide_sidebar
 from utils.db import db
 
-from ai.code_test_agent import assess_code
+from ai.code_test_agent import assess_code_with_gpt4
 
 def reset_state():
     del st.session_state.test_started
@@ -241,17 +241,17 @@ body {{
                     if not solution_code:
                         st.error("Code should not be empty")
                     else:
-                        passed, code_quality, explanation_rating, overall_rating, reason = assess_code(problem=test["problems"][st.session_state.current_problem_index]["description"], code=solution_code, explanation=solution_explanation)
+                        code_test_result = assess_code_with_gpt4(problem=test["problems"][st.session_state.current_problem_index]["description"], code=solution_code, explanation=solution_explanation)
 
                         participants = test["participants"]
                         participants[st.session_state.participant_id]["solutions"].append({
                             "code": solution_code,
                             "explanation": solution_explanation,
-                            "passed": passed,
-                            "code_quality": code_quality,
-                            "explanation_rating": explanation_rating,
-                            "overall_rating": overall_rating,
-                            "reason": reason,
+                            "passed": code_test_result.passed,
+                            "code_quality": code_test_result.code_quality,
+                            "explanation_rating": code_test_result.explanation_rating,
+                            "overall_rating": code_test_result.overall_rating,
+                            "reason": code_test_result.reason,
                         })
                         
                         db.collection("tests").document(st.session_state.test_code).update({
