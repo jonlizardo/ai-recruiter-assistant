@@ -1,4 +1,4 @@
-from code_test_agent import assess_code
+from code_test_agent import assess_code, assess_code_with_gpt4
 
 
 problem = "Build a Python client library for interacting with a third-party API. Handle authentication, error handling, and response parsing. Implement data validation and transformation based on API specifications. Design a caching mechanism to optimize performance and reduce API calls. Make the client library modular and easy to integrate into existing applications."
@@ -50,4 +50,12 @@ print(transformed_data)
 
 explanation = "In the above code, I create a ThirdPartyAPIClient class that handles authentication, error handling, response parsing, data validation, transformation, and caching. The get_data method fetches data from the API and caches it to optimize performance. The validate_data and transform_data methods can be implemented based on the API specifications. This client library is designed to be modular and easy to integrate into existing applications."
 
-print(assess_code(problem, code, explanation))
+# explanation = "Hello, my name is Ronnie."
+
+# assess_code(problem, code, explanation)
+response = assess_code_with_gpt4(problem, code, explanation)
+print(f"passed: {response.passed}")
+print(f"code_quality: {response.code_quality}")
+print(f"explanation_rating: {response.explanation_rating}")
+print(f"overall_rating: {response.overall_rating}")
+print(f"reason: {response.reason}")
