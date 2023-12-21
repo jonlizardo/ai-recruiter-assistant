@@ -261,6 +261,9 @@ body {{
                             "participants": participants
                         })
                         st.session_state.submitted_current_problem = True
+                        # Next Button logic
+                        st.session_state.current_problem_index += 1
+                        st.session_state.submitted_current_problem = False
                         st.rerun()
     # If test finished
     else:
