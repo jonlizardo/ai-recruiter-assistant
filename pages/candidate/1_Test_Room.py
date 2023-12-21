@@ -142,11 +142,13 @@ body {{
                         solutions = participants[me]["solutions"]
                         overall_rating = sum([solution["overall_rating"] for solution in solutions]) / len(solutions)
                         overall_code_quality = sum([solution["code_quality"] for solution in solutions]) / len(solutions)
+                        overall_explanation_rating = sum([solution["explanation_rating"] for solution in solutions]) / len(solutions)
                         total_passed = len([solution for solution in solutions if solution["passed"]])
                         finished_at = datetime.now()
                         
                         participants[me]["overall_rating"] = overall_rating
                         participants[me]["overall_code_quality"] = overall_code_quality
+                        participants[me]["overall_explanation_rating"] = overall_explanation_rating
                         participants[me]["total_passed"] = total_passed
                         participants[me]["finished_at"] = finished_at
 
@@ -191,6 +193,7 @@ body {{
                         "finished_at": None,
                         "solutions": [],
                         "overall_code_quality": 0,
+                        "overall_explanation_rating": 0,
                         "overall_rating": 0,
                         "total_passed": 0,
                     }
@@ -269,6 +272,7 @@ body {{
             st.write(f"🔥 Overall Rating: {round(my_test['overall_rating'], 1)}/5")
             st.write(f"✨ Solved problems: {len([solution for solution in solutions if solution['passed']])}/{len(test['problems'])}")
             st.write(f"📚 Code quality: {round(my_test['overall_code_quality'], 1)}/5")
+            st.write(f"👨‍🏫 Explanation rating: {round(my_test['overall_explanation_rating'], 1)}/5")
     
 # Run the Streamlit app
 if __name__ == '__main__':
