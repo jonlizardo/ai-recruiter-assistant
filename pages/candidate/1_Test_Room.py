@@ -245,28 +245,29 @@ body {{
                     if not solution_code:
                         st.error("Code should not be empty")
                     else:
-                        code_test_result = assess_code_with_gpt4(problem=test["problems"][st.session_state.current_problem_index]["description"], code=solution_code, explanation=solution_explanation)
+                        with st.spinner("Submitting solution..."):
+                            code_test_result = assess_code_with_gpt4(problem=test["problems"][st.session_state.current_problem_index]["description"], code=solution_code, explanation=solution_explanation)
 
-                        participants = test["participants"]
-                        participants[st.session_state.participant_id]["solutions"].append({
-                            "code": solution_code,
-                            "explanation": solution_explanation,
-                            "passed": code_test_result.passed,
-                            "code_quality": code_test_result.code_quality,
-                            "explanation_rating": code_test_result.explanation_rating,
-                            "overall_rating": code_test_result.overall_rating,
-                            "reason": code_test_result.reason,
-                        })
-                        
-                        db.collection("tests").document(st.session_state.test_code).update({
-                            "participants": participants
-                        })
-                        st.session_state.submitted_current_problem = True
-                        # Next Button logic
-                        if st.session_state.current_problem_index < len(test["problems"]) - 1:
-                            st.session_state.current_problem_index += 1
-                            st.session_state.submitted_current_problem = False
-                        st.rerun()
+                            participants = test["participants"]
+                            participants[st.session_state.participant_id]["solutions"].append({
+                                "code": solution_code,
+                                "explanation": solution_explanation,
+                                "passed": code_test_result.passed,
+                                "code_quality": code_test_result.code_quality,
+                                "explanation_rating": code_test_result.explanation_rating,
+                                "overall_rating": code_test_result.overall_rating,
+                                "reason": code_test_result.reason,
+                            })
+                            
+                            db.collection("tests").document(st.session_state.test_code).update({
+                                "participants": participants
+                            })
+                            st.session_state.submitted_current_problem = True
+                            # Next Button logic
+                            if st.session_state.current_problem_index < len(test["problems"]) - 1:
+                                st.session_state.current_problem_index += 1
+                                st.session_state.submitted_current_problem = False
+                            st.rerun()
     # If test finished
     else:
         my_test = test['participants'][st.session_state.participant_id]
