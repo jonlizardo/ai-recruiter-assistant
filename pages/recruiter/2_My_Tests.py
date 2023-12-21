@@ -80,6 +80,7 @@ def my_tests():
                                         st.write(f"Passed: {len([solution for solution in participant['solutions'] if solution['passed']])}/{total_problems}")
                                         st.write(f"Overall rating: {round(participant['overall_rating'], 1)}/5")
                                         st.write(f"Overall code quality: {round(participant['overall_code_quality'], 1)}/5")
+                                        st.write(f"Overall explanation rating: {round(participant['overall_explanation_rating'], 1)}/5")
                                         st.write(f"Finished at {participant['finished_at'].strftime('%Y-%m-%d %H:%M:%S')}")
                                 if total_problems > 0:
                                     problem_tabs = st.tabs([f"Problem {k + 1}" for k, problem in enumerate(test.get('problems'))])
@@ -100,6 +101,7 @@ def my_tests():
                                                 with st.container(border=True):
                                                     st.write(f"Overall rating: {solution['overall_rating']}/5")
                                                     st.write(f"Code quality: {solution['code_quality']}/5")
+                                                    st.write(f"Explanation rating: {solution['explanation_rating']}/5")
                                                     st.write(solution['reason'])
 # Run the Streamlit appx
 if __name__ == '__main__':
