@@ -17,4 +17,5 @@ streamlit_extras
 asyncio
 streamlit-pills
 streamlit-option-menu==0.3.6
-
+streamlit_webrtc
+cv2

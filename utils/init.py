@@ -9,14 +9,16 @@ from firebase_admin import credentials
 def initialize_app():
     # load .env file
     load_dotenv()
-    
+
     # initialize firebase
     cred = credentials.Certificate('neurakey.json')
     try:
-        firebase_admin.initialize_app(cred)
+        firebase_admin.initialize_app(cred, {
+            'storageBucket': 'neurainterview.appspot.com'
+        })
     except:
         print('Already initialized Firebase')
-        
+
     # initizalize state
     if 'user' not in st.session_state:
         st.session_state.user = None
