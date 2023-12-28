@@ -3,6 +3,7 @@ from streamlit_extras.switch_page_button import switch_page
 from streamlit_ace import st_ace, KEYBINDINGS, LANGUAGES, THEMES
 from streamlit.components.v1 import html
 from st_pages import show_pages, Page, hide_pages
+from audio_recorder_streamlit import audio_recorder
 
 import pandas as pd
 import numpy as np
@@ -19,6 +20,7 @@ from utils.auth import signout
 from utils.components import sidebar_logout, hide_navitems_from_sidebar, hide_seperator_from_sidebar, hide_sidebar
 from utils.db import db
 from utils.webcam import webcam
+from utils.upload_audio import upload_audio_to_firebase
 
 from ai.code_test_agent import assess_code_with_gpt4
 
@@ -29,6 +31,7 @@ def reset_state():
     del st.session_state.participant_id
     del st.session_state.current_problem_index
     del st.session_state.submitted_current_problem
+    del st.session_state.audio_bytes
 
 
 def candidate():
@@ -43,6 +46,8 @@ def candidate():
         st.session_state.current_problem_index = 0
     if 'submitted_current_problem' not in st.session_state:
         st.session_state.submitted_current_problem = False
+    if 'audio_bytes' not in st.session_state:
+        st.session_state.audio_bytes = None
 
     # Page Config
     st.set_page_config(
@@ -244,7 +249,8 @@ body {{
         wrap = col2.checkbox("Wrap enabled", value=False)
 
         with col1:
-            with st.form("solution_form", border=False):
+            form = st.form("solution_form", border=False)
+            with form:
                 solution_code = st_ace(
                     placeholder=("Write your code here"),
                     language=language,
@@ -259,37 +265,54 @@ body {{
                     min_lines=30,
                     key=f"ace_{st.session_state.current_problem_index}",
                 )
-                solution_explanation = st.text_area(
-                    "Explanation", key=f"explanation_textarea_{st.session_state.current_problem_index}")
+                # solution_explanation = st.text_area(
+                #     "Explanation", key=f"explanation_textarea_{st.session_state.current_problem_index}")
 
-                if st.columns([3, 2])[1].form_submit_button("🔥 Submit Solution" if not st.session_state.submitted_current_problem else "✔ Submitted", type="primary", disabled=st.session_state.submitted_current_problem, use_container_width=True):
-                    if not solution_code:
-                        st.error("Code should not be empty")
-                    else:
-                        with st.spinner("Submitting solution..."):
-                            code_test_result = assess_code_with_gpt4(
-                                problem=test["problems"][st.session_state.current_problem_index]["description"], code=solution_code, explanation=solution_explanation)
+                solution_explanation = ""
 
-                            participants = test["participants"]
-                            participants[st.session_state.participant_id]["solutions"].append({
-                                "code": solution_code,
-                                "explanation": solution_explanation,
-                                "passed": code_test_result.passed,
-                                "code_quality": code_test_result.code_quality,
-                                "explanation_rating": code_test_result.explanation_rating,
-                                "overall_rating": code_test_result.overall_rating,
-                                "reason": code_test_result.reason,
-                            })
+            if not st.session_state.audio_bytes:
+                st.session_state.audio_bytes = audio_recorder(
+                    "Click to record your explanation")
+            else:
+                st.audio(st.session_state.audio_bytes, format="audio/wav")
+                control_cols = st.columns([1, 1, 2])
+                if control_cols[0].button("Re-record", use_container_width=True):
+                    st.session_state.audio_bytes = None
+                    st.rerun()
+                if control_cols[1].button("Save", type="primary", use_container_width=True):
+                    # TODO: Save audio to db
+                    upload_audio_to_firebase(st.session_state.audio_bytes, "explanation.mp3")
+                    pass
 
-                            db.collection("tests").document(st.session_state.test_code).update({
-                                "participants": participants
-                            })
-                            st.session_state.submitted_current_problem = True
-                            # Next Button logic
-                            if st.session_state.current_problem_index < len(test["problems"]) - 1:
-                                st.session_state.current_problem_index += 1
-                                st.session_state.submitted_current_problem = False
-                            st.rerun()
+            if form.columns([3, 2])[1].form_submit_button("🔥 Submit Solution" if not st.session_state.submitted_current_problem else "✔ Submitted", type="primary", disabled=st.session_state.submitted_current_problem, use_container_width=True):
+                if not solution_code:
+                    st.error("Code should not be empty")
+                else:
+                    with st.spinner("Submitting solution..."):
+                        code_test_result = assess_code_with_gpt4(
+                            problem=test["problems"][st.session_state.current_problem_index]["description"], code=solution_code, explanation=solution_explanation)
+
+                        participants = test["participants"]
+                        participants[st.session_state.participant_id]["solutions"].append({
+                            "code": solution_code,
+                            "explanation": solution_explanation,
+                            "passed": code_test_result.passed,
+                            "code_quality": code_test_result.code_quality,
+                            "explanation_rating": code_test_result.explanation_rating,
+                            "overall_rating": code_test_result.overall_rating,
+                            "reason": code_test_result.reason,
+                        })
+
+                        db.collection("tests").document(st.session_state.test_code).update({
+                            "participants": participants
+                        })
+                        st.session_state.submitted_current_problem = True
+                        # Next Button logic
+                        if st.session_state.current_problem_index < len(test["problems"]) - 1:
+                            st.session_state.current_problem_index += 1
+                            st.session_state.submitted_current_problem = False
+                        st.rerun()
+
     # If test finished
     else:
         my_test = test['participants'][st.session_state.participant_id]
