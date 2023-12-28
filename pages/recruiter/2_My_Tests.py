@@ -9,6 +9,7 @@ from google.cloud.firestore_v1.base_query import FieldFilter
 from utils.db import db
 from utils.init import initialize_app
 from utils.components import sidebar_logout, hide_seperator_from_sidebar
+from utils.storage import get_video_url_from_firebase
 
 
 def my_tests():
@@ -103,6 +104,8 @@ def my_tests():
                                                     st.write(f"Code quality: {solution['code_quality']}/5")
                                                     st.write(f"Explanation rating: {solution['explanation_rating']}/5")
                                                     st.write(solution['reason'])
+                                                st.video(get_video_url_from_firebase("recording.mp4"))
+                                                st.audio(get_video_url_from_firebase("explanation.mp3"))
 # Run the Streamlit appx
 if __name__ == '__main__':
     initialize_app()

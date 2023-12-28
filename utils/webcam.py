@@ -17,7 +17,7 @@ from firebase_admin import credentials, storage
 
 def webcam(participant_id):
     class VideoProcessor:
-        def __init__(self, target_fps=10, output_file='output.avi'):
+        def __init__(self, target_fps=10, output_file='recording.mp4'):
             # Target frames per second (FPS)
             self.target_fps = target_fps
             # Interval in seconds between frames
@@ -41,7 +41,7 @@ def webcam(participant_id):
             # Initialize the video writer when receiving the first frame
             if self.out is None:
                 self.out = cv2.VideoWriter(self.output_file, cv2.VideoWriter_fourcc(
-                    *'XVID'), self.target_fps, (img.shape[1], img.shape[0]))
+                    *'mp4v'), self.target_fps, (img.shape[1], img.shape[0]))
 
             # Write the frame to the video file
             self.out.write(img)
