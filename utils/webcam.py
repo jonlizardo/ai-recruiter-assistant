@@ -17,7 +17,7 @@ from firebase_admin import credentials, storage
 
 def webcam(participant_id):
     class VideoProcessor:
-        def __init__(self, target_fps=10, output_file='recording.mp4'):
+        def __init__(self, target_fps=10, output_file='/var/lib/data/recording.mp4'):
             # Target frames per second (FPS)
             self.target_fps = target_fps
             # Interval in seconds between frames
