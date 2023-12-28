@@ -18,5 +18,5 @@ asyncio
 streamlit-pills
 streamlit-option-menu==0.3.6
 streamlit_webrtc
-cv2
+opencv-python
 audio-recorder-streamlit
