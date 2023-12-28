@@ -38,26 +38,26 @@ def webcam(participant_id):
             self.last_time = current_time
             img = frame.to_ndarray(format="bgr24")
 
-            # Initialize the video writer when receiving the first frame
-            if self.out is None:
-                self.out = cv2.VideoWriter(self.output_file, cv2.VideoWriter_fourcc(
-                    *'mp4v'), self.target_fps, (img.shape[1], img.shape[0]))
+            # # Initialize the video writer when receiving the first frame
+            # if self.out is None:
+            #     self.out = cv2.VideoWriter(self.output_file, cv2.VideoWriter_fourcc(
+            #         *'mp4v'), self.target_fps, (img.shape[1], img.shape[0]))
 
-            # Write the frame to the video file
-            self.out.write(img)
+            # # Write the frame to the video file
+            # self.out.write(img)
 
             return av.VideoFrame.from_ndarray(img, format="bgr24")
 
         def close(self):
             # Close the video writer
             if self.out:
-                self.out.release()
+                # self.out.release()
                 self.out = None
 
                 # Upload to Firebase Storage
-                bucket = storage.bucket()
-                blob = bucket.blob(self.output_file)
-                blob.upload_from_filename(self.output_file)
+                # bucket = storage.bucket()
+                # blob = bucket.blob(self.output_file)
+                # blob.upload_from_filename(self.output_file)
 
                 # Optionally, delete the local file after upload
                 # os.remove(self.output_file)
