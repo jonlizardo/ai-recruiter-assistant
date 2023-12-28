@@ -9,7 +9,7 @@ class VideoProcessor:
         
         # img = process(img)
         
-        return av.VideoFrame.from_ndarray(img, format="bgr24")
+        return img
 
 RTC_CONFIGURATION = RTCConfiguration(
     {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
@@ -17,10 +17,6 @@ RTC_CONFIGURATION = RTCConfiguration(
 
 webrtc_ctx = webrtc_streamer(
     key="WYH",
-    mode=WebRtcMode.SENDRECV,
     rtc_configuration=RTC_CONFIGURATION,
-    media_stream_constraints={"video": True, "audio": True},
-    # video_processor_factory=VideoProcessor,
-    audio_processor_factory=AudioProcessor,
-    async_processing=True,
+    video_processor_factory=VideoProcessor,
 )
