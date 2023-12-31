@@ -26,10 +26,10 @@ def home():
     ])
 
     # Header
-    st.header("Ferdinand AI Testing Platform")
+    st.header("Eugene By Neuradev AI Testing Platform")
     
     # Hero Image
-    hero_image = Image.open('assets/images/starter.jpg')
+    hero_image = Image.open('assets/images/limeimage2.jpeg')
     st.image(hero_image)
 
     # Candidate/Recruiter Tabs
