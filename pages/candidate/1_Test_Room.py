@@ -176,7 +176,7 @@ body {{
                         st.session_state.test_finished = True
                         st.rerun()
 
-            webcam(st.session_state.participant_id)
+            # webcam(st.session_state.participant_id)
 
     # Add Logout button to sidebar
     with st.sidebar:
