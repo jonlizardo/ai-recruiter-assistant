@@ -104,8 +104,8 @@ def my_tests():
                                                     st.write(f"Code quality: {solution['code_quality']}/5")
                                                     st.write(f"Explanation rating: {solution['explanation_rating']}/5")
                                                     st.write(solution['reason'])
-                                                st.video(get_video_url_from_firebase("recording.mp4"))
-                                                st.audio(get_video_url_from_firebase("explanation.mp3"))
+                                                # st.video(get_video_url_from_firebase("recording.mp4"))
+                                                # st.audio(get_video_url_from_firebase("explanation.mp3"))
 # Run the Streamlit appx
 if __name__ == '__main__':
     initialize_app()
