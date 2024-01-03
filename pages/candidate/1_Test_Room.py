@@ -265,24 +265,24 @@ body {{
                     min_lines=30,
                     key=f"ace_{st.session_state.current_problem_index}",
                 )
-                # solution_explanation = st.text_area(
-                #     "Explanation", key=f"explanation_textarea_{st.session_state.current_problem_index}")
+                solution_explanation = st.text_area(
+                    "Explanation", key=f"explanation_textarea_{st.session_state.current_problem_index}")
 
-                solution_explanation = ""
+                # solution_explanation = ""
 
-            if not st.session_state.audio_bytes:
-                st.session_state.audio_bytes = audio_recorder(
-                    "Click to record your explanation")
-            else:
-                st.audio(st.session_state.audio_bytes, format="audio/wav")
-                control_cols = st.columns([1, 1, 2])
-                if control_cols[0].button("Re-record", use_container_width=True):
-                    st.session_state.audio_bytes = None
-                    st.rerun()
-                if control_cols[1].button("Save", type="primary", use_container_width=True):
-                    # TODO: Save audio to db
-                    upload_audio_to_firebase(st.session_state.audio_bytes, "explanation.mp3")
-                    pass
+            # if not st.session_state.audio_bytes:
+            #     st.session_state.audio_bytes = audio_recorder(
+            #         "Click to record your explanation")
+            # else:
+            #     st.audio(st.session_state.audio_bytes, format="audio/wav")
+            #     control_cols = st.columns([1, 1, 2])
+            #     if control_cols[0].button("Re-record", use_container_width=True):
+            #         st.session_state.audio_bytes = None
+            #         st.rerun()
+            #     if control_cols[1].button("Save", type="primary", use_container_width=True):
+            #         # TODO: Save audio to db
+            #         upload_audio_to_firebase(st.session_state.audio_bytes, "explanation.mp3")
+            #         pass
 
             if form.columns([3, 2])[1].form_submit_button("🔥 Submit Solution" if not st.session_state.submitted_current_problem else "✔ Submitted", type="primary", disabled=st.session_state.submitted_current_problem, use_container_width=True):
                 if not solution_code:
